@@ -74,10 +74,18 @@ WSGI_APPLICATION = 'LibraryManagementSystem.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Changed SQLite to MySQL
+# Take note of the info for your schema if you need to add more to the databases
+# Command for importing .sql file to models.py is "python manage.py inspectdb > app\models.py"
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mydb',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
     }
 }
 
