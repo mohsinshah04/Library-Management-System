@@ -328,8 +328,14 @@ AFTER UPDATE ON `mydb`.`Loans`
 FOR EACH ROW
 BEGIN
 	IF NEW.return_date IS NULL AND NEW.due_date < CURDATE() THEN
-		INSERT INTO Notifications(user_id, message, notification_type)
-        VALUES (NEW.user_id, CONCAT('Loan ', NEW.loan_id, ' is overdue!'), 'overdue');
+		IF NOT EXISTS (
+            SELECT 1 FROM Notifications
+            WHERE user_id = NEW.user_id
+            AND message = CONCAT('Loan ', NEW.loan_id, ' is overdue!')
+        ) THEN
+			INSERT INTO Notifications(user_id, message, notification_type)
+            VALUES (NEW.user_id, CONCAT('Loan ', NEW.loan_id, ' is overdue!'), 'overdue');
+        END IF;
     END IF;
 END$$
 DELIMITER ;
