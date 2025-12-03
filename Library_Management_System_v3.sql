@@ -296,7 +296,7 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Notifications` (
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `is_read` TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`notification_id`),
-  INDEX `idx_notifications_user` (`user_id` ASC) VISIBLE,
+  INDEX `idx_notifications_user` (`user_id` ASC),
   CONSTRAINT `fk_notifications_user`
     FOREIGN KEY (`user_id`)
     REFERENCES `mydb`.`Users` (`user_id`)
@@ -304,6 +304,84 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Notifications` (
     ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4;
+
+-- -----------------------------------------------------
+-- Additional database objects: Views, Triggers, Procedures, Cursors
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- View `mydb`.`v_overdue_loans`
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `mydb`.`v_overdue_loans`;
+CREATE VIEW `mydb`.`v_overdue_loans` AS
+SELECT l.loan_id, u.username, b.title, l.due_date FROM `mydb`.`Loans` l
+JOIN `mydb`.`Users` u ON l.user_id = u.user_id JOIN `mydb`.`Books` b ON l.book_id = b.book_id
+WHERE l.return_date IS NULL AND l.due_date < CURDATE();
+
+-- -----------------------------------------------------
+-- Trigger `mydb`.`trg_overdue_notification`
+-- -----------------------------------------------------
+DROP TRIGGER IF EXISTS `mydb`.`trg_overdue_notification`;
+DELIMITER $$
+CREATE TRIGGER `mydb`.`trg_overdue_notification`
+AFTER UPDATE ON `mydb`.`Loans`
+FOR EACH ROW
+BEGIN
+	IF NEW.return_date IS NULL AND NEW.due_date < CURDATE() THEN
+		IF NOT EXISTS (
+            SELECT 1 FROM Notifications
+            WHERE user_id = NEW.user_id
+            AND message = CONCAT('Loan ', NEW.loan_id, ' is overdue!')
+        ) THEN
+			INSERT INTO Notifications(user_id, message, notification_type)
+            VALUES (NEW.user_id, CONCAT('Loan ', NEW.loan_id, ' is overdue!'), 'overdue');
+        END IF;
+    END IF;
+END$$
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- Procedure `mydb`.`sp_user_loans`
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS `mydb`.`sp_user_loans`;
+DELIMITER $$
+CREATE PROCEDURE `mydb`.`sp_user_loans` (IN uid INT)
+BEGIN
+    SELECT b.title, l.loan_date, l.due_date, l.return_date
+    FROM `mydb`.`Loans` l
+    JOIN `mydb`.`Books` b ON l.book_id = b.book_id
+    WHERE l.user_id = uid;
+END$$
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- Procedure `mydb`.`sp_process_overdue` (with cursor example)
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS `mydb`.`sp_process_overdue`;
+DELIMITER $$
+CREATE PROCEDURE `mydb`.`sp_process_overdue` ()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE loanId INT;
+    DECLARE cur CURSOR FOR
+        SELECT loan_id FROM `mydb`.`Loans` WHERE return_date IS NULL AND due_date < CURDATE();
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO loanId;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM Fines WHERE loan_id = loanId) THEN
+            INSERT INTO Fines(user_id, loan_id, amount)
+            SELECT user_id, loan_id, 5.00 FROM Loans WHERE loan_id = loanId;
+        END IF;
+    END LOOP;
+    CLOSE cur;
+END$$
+DELIMITER ;
+
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
