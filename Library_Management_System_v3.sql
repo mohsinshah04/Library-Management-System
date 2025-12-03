@@ -314,8 +314,8 @@ DEFAULT CHARACTER SET = utf8mb4;
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `mydb`.`v_overdue_loans`;
 CREATE VIEW `mydb`.`v_overdue_loans` AS
-SELECT l.loan_id, u.username, b.title, l.due_date FROM Loans l
-JOIN Users u ON l.user_id = u.user_id JOIN Books b ON l.book_id = b.book_id
+SELECT l.loan_id, u.username, b.title, l.due_date FROM `mydb`.`Loans` l
+JOIN `mydb`.`Users` u ON l.user_id = u.user_id JOIN `mydb`.`Books` b ON l.book_id = b.book_id
 WHERE l.return_date IS NULL AND l.due_date < CURDATE();
 
 -- -----------------------------------------------------
