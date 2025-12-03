@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'LibraryManagementSystem.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydb',
+        'NAME': 'library_db',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '127.0.0.1',
@@ -170,3 +170,5 @@ CORS_ALLOW_CREDENTIALS = True
 # app.Users is used for traditional Django views
 # If you want to use accounts.User as the main user model, uncomment below:
 # AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User'
+
