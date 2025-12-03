@@ -358,7 +358,7 @@ BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE loanId INT;
     DECLARE cur CURSOR FOR
-        SELECT loan_id FROM Loans WHERE return_date IS NULL AND due_date < CURDATE();
+        SELECT loan_id FROM `mydb`.`Loans` WHERE return_date IS NULL AND due_date < CURDATE();
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     OPEN cur;
@@ -367,8 +367,8 @@ BEGIN
         IF done THEN
             LEAVE read_loop;
         END IF;
-        INSERT INTO Fines(user_id, loan_id, amount)
-        SELECT user_id, loan_id, 5.00 FROM Loans WHERE loan_id = loanId;
+        INSERT INTO `mydb`.`Fines`(user_id, loan_id, amount)
+        SELECT user_id, loan_id, 5.00 FROM `mydb`.`Loans` WHERE loan_id = loanId;
     END LOOP;
     CLOSE cur;
 END$$
