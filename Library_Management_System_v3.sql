@@ -314,8 +314,8 @@ DEFAULT CHARACTER SET = utf8mb4;
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `mydb`.`v_overdue_loans`;
 CREATE VIEW `mydb`.`v_overdue_loans` AS
-SELECT l.loan_id, u.username, b.title, l.due_date FROM Loans l
-JOIN Users u ON l.user_id = u.user_id JOIN Books b ON l.book_id = b.book_id
+SELECT l.loan_id, u.username, b.title, l.due_date FROM `mydb`.`Loans` l
+JOIN `mydb`.`Users` u ON l.user_id = u.user_id JOIN `mydb`.`Books` b ON l.book_id = b.book_id
 WHERE l.return_date IS NULL AND l.due_date < CURDATE();
 
 -- -----------------------------------------------------
@@ -328,8 +328,14 @@ AFTER UPDATE ON `mydb`.`Loans`
 FOR EACH ROW
 BEGIN
 	IF NEW.return_date IS NULL AND NEW.due_date < CURDATE() THEN
-		INSERT INTO `mydb`.`Notifications`(user_id, message, notification_type)
-        VALUES (NEW.user_id, CONCAT('Loan ', NEW.loan_id, ' is overdue!'), 'overdue');
+		IF NOT EXISTS (
+            SELECT 1 FROM Notifications
+            WHERE user_id = NEW.user_id
+            AND message = CONCAT('Loan ', NEW.loan_id, ' is overdue!')
+        ) THEN
+			INSERT INTO Notifications(user_id, message, notification_type)
+            VALUES (NEW.user_id, CONCAT('Loan ', NEW.loan_id, ' is overdue!'), 'overdue');
+        END IF;
     END IF;
 END$$
 DELIMITER ;
@@ -367,8 +373,10 @@ BEGIN
         IF done THEN
             LEAVE read_loop;
         END IF;
-        INSERT INTO `mydb`.`Fines`(user_id, loan_id, amount)
-        SELECT user_id, loan_id, 5.00 FROM `mydb`.`Loans` WHERE loan_id = loanId;
+        IF NOT EXISTS (SELECT 1 FROM Fines WHERE loan_id = loanId) THEN
+            INSERT INTO Fines(user_id, loan_id, amount)
+            SELECT user_id, loan_id, 5.00 FROM Loans WHERE loan_id = loanId;
+        END IF;
     END LOOP;
     CLOSE cur;
 END$$
