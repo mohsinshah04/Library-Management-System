@@ -324,7 +324,7 @@ WHERE l.return_date IS NULL AND l.due_date < CURDATE();
 DROP TRIGGER IF EXISTS `mydb`.`trg_overdue_notification`;
 DELIMITER $$
 CREATE TRIGGER `mydb`.`trg_overdue_notification`
-AFTER UPDATE ON Loans
+AFTER UPDATE ON `mydb`.`Loans`
 FOR EACH ROW
 BEGIN
 	IF NEW.return_date IS NULL AND NEW.due_date < CURDATE() THEN
