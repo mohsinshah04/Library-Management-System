@@ -364,7 +364,7 @@ BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE loanId INT;
     DECLARE cur CURSOR FOR
-        SELECT loan_id FROM Loans WHERE return_date IS NULL AND due_date < CURDATE();
+        SELECT loan_id FROM `mydb`.`Loans` WHERE return_date IS NULL AND due_date < CURDATE();
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     OPEN cur;
