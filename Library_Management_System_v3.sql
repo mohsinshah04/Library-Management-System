@@ -348,8 +348,8 @@ DELIMITER $$
 CREATE PROCEDURE `mydb`.`sp_user_loans` (IN uid INT)
 BEGIN
     SELECT b.title, l.loan_date, l.due_date, l.return_date
-    FROM Loans l
-    JOIN Books b ON l.book_id = b.book_id
+    FROM `mydb`.`Loans` l
+    JOIN `mydb`.`Books` b ON l.book_id = b.book_id
     WHERE l.user_id = uid;
 END$$
 DELIMITER ;
