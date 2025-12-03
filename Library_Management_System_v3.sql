@@ -367,8 +367,10 @@ BEGIN
         IF done THEN
             LEAVE read_loop;
         END IF;
-        INSERT INTO Fines(user_id, loan_id, amount)
-        SELECT user_id, loan_id, 5.00 FROM Loans WHERE loan_id = loanId;
+        IF NOT EXISTS (SELECT 1 FROM Fines WHERE loan_id = loanId) THEN
+            INSERT INTO Fines(user_id, loan_id, amount)
+            SELECT user_id, loan_id, 5.00 FROM Loans WHERE loan_id = loanId;
+        END IF;
     END LOOP;
     CLOSE cur;
 END$$
