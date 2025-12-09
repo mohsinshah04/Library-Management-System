@@ -166,7 +166,6 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Custom User Model
 # Note: The main project has app.Users model, and we've added accounts.User for JWT auth
-# Both can coexist - accounts.User is used for JWT authentication API endpoints
-# app.Users is used for traditional Django views
-# If you want to use accounts.User as the main user model, uncomment below:
-# AUTH_USER_MODEL = 'accounts.User'
+# Setting AUTH_USER_MODEL to accounts.User so JWT authentication works properly
+# app.Users can still be used for traditional Django views (it's a separate model)
+AUTH_USER_MODEL = 'accounts.User'

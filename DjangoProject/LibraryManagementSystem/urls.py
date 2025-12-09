@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # API endpoints (REST API)
     path('api/auth/', include('accounts.urls')),
+    path('api/', include('app.api_urls')),  # Library management API
     # Traditional Django views (existing app)
     path('', include('app.urls')),
 ]

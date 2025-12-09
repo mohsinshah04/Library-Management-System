@@ -29,5 +29,5 @@ class User(AbstractUser):
         return f"{self.username} ({self.role})"
     
     class Meta:
-        db_table = 'auth_users'  # Changed to avoid conflict with app.Users table
+        db_table = 'users'
 
