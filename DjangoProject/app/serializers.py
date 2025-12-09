@@ -367,13 +367,59 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     """Serializer for Notifications"""
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
+    
     class Meta:
         model = Notifications
         fields = [
-            'notification_id', 'user', 'message', 'notification_type',
-            'created_at', 'is_read'
+            'notification_id', 'user', 'user_name', 'user_email', 'message', 
+            'notification_type', 'created_at', 'is_read'
         ]
         read_only_fields = ['notification_id', 'created_at']
+    
+    def get_user_name(self, obj):
+        """Get user's full name"""
+        if obj.user:
+            return f"{obj.user.first_name} {obj.user.last_name}"
+        return None
+    
+    def get_user_email(self, obj):
+        """Get user's email"""
+        if obj.user:
+            return obj.user.email
+        return None
+
+
+class NotificationCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating custom notifications"""
+    user_id = serializers.IntegerField(required=True, help_text="ID of the user to send notification to")
+    
+    class Meta:
+        model = Notifications
+        fields = ['user_id', 'message', 'notification_type']
+    
+    def validate_user_id(self, value):
+        """Validate that user exists"""
+        try:
+            Users.objects.get(pk=value)
+        except Users.DoesNotExist:
+            raise serializers.ValidationError("User with this ID does not exist.")
+        return value
+    
+    def create(self, validated_data):
+        """Create notification for the specified user"""
+        user_id = validated_data.pop('user_id')
+        user = Users.objects.get(pk=user_id)
+        
+        notification = Notifications.objects.create(
+            user=user,
+            message=validated_data['message'],
+            notification_type=validated_data.get('notification_type', 'alert'),
+            created_at=timezone.now(),
+            is_read=0
+        )
+        return notification
 
 
 # -----------------------

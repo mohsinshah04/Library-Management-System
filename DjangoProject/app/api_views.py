@@ -12,7 +12,7 @@ from .serializers import (
     BookSerializer, BookCreateSerializer,
     LoanSerializer, LoanCreateSerializer,
     ReservationSerializer, ReservationCreateSerializer,
-    NotificationSerializer, FineSerializer,
+    NotificationSerializer, NotificationCreateSerializer, FineSerializer,
     UserBasicSerializer, UserSerializer, UserCreateSerializer, UserUpdateSerializer,
     LibraryBranchSerializer, AuthorSerializer, CatalogSerializer
 )
@@ -574,7 +574,9 @@ def reservation_update_status(request, reservation_id):
 @permission_classes([IsAuthenticated])
 def notification_list(request):
     """
-    Get all notifications for the current user
+    Get notifications:
+    - Students: their own notifications
+    - Librarians: all notifications (notification history)
     """
     app_user = get_app_user(request.user)
     
@@ -584,13 +586,30 @@ def notification_list(request):
             status=status.HTTP_404_NOT_FOUND
         )
     
-    notifications = Notifications.objects.filter(user=app_user).order_by('-created_at')
+    # Librarians see all notifications, students see only their own
+    if is_librarian(request.user):
+        notifications = Notifications.objects.all().order_by('-created_at')
+    else:
+        notifications = Notifications.objects.filter(user=app_user).order_by('-created_at')
     
     # Filter by read status if provided
     is_read = request.query_params.get('is_read', None)
     if is_read is not None:
         is_read_bool = is_read.lower() == 'true'
         notifications = notifications.filter(is_read=1 if is_read_bool else 0)
+    
+    # Filter by user if provided (for librarians)
+    user_id = request.query_params.get('user_id', None)
+    if user_id and is_librarian(request.user):
+        try:
+            notifications = notifications.filter(user_id=user_id)
+        except ValueError:
+            pass
+    
+    # Filter by notification type if provided
+    notification_type = request.query_params.get('type', None)
+    if notification_type:
+        notifications = notifications.filter(notification_type=notification_type)
     
     serializer = NotificationSerializer(notifications, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -601,16 +620,19 @@ def notification_list(request):
 def notification_mark_read(request, notification_id):
     """
     Mark a notification as read
+    - Students can only mark their own notifications
+    - Librarians can mark any notification
     """
     notification = get_object_or_404(Notifications, pk=notification_id)
     app_user = get_app_user(request.user)
     
-    # Check permission: users can only mark their own notifications as read
-    if not app_user or notification.user != app_user:
-        return Response(
-            {'error': 'You can only mark your own notifications as read.'},
-            status=status.HTTP_403_FORBIDDEN
-        )
+    # Check permission: students can only mark their own, librarians can mark any
+    if not is_librarian(request.user):
+        if not app_user or notification.user != app_user:
+            return Response(
+                {'error': 'You can only mark your own notifications as read.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
     
     notification.is_read = 1
     notification.save()
@@ -619,6 +641,99 @@ def notification_mark_read(request, notification_id):
         {
             'message': 'Notification marked as read.',
             'notification': NotificationSerializer(notification).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def notification_create(request):
+    """
+    Create a custom notification (librarian only)
+    """
+    if not is_librarian(request.user):
+        return Response(
+            {'error': 'Only librarians can create notifications.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    serializer = NotificationCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        notification = serializer.save()
+        return Response(
+            {
+                'message': 'Notification sent successfully.',
+                'notification': NotificationSerializer(notification).data
+            },
+            status=status.HTTP_201_CREATED
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def notification_trigger_overdue(request):
+    """
+    Trigger overdue notices for all overdue loans (librarian only)
+    """
+    if not is_librarian(request.user):
+        return Response(
+            {'error': 'Only librarians can trigger overdue notices.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    today = timezone.now().date()
+    
+    # Find all overdue loans (due_date < today and return_date is None)
+    overdue_loans = Loans.objects.filter(
+        due_date__lt=today,
+        return_date__isnull=True
+    )
+    
+    notifications_created = 0
+    notifications_updated = 0
+    
+    for loan in overdue_loans:
+        # Calculate late days
+        late_days = (today - loan.due_date).days
+        
+        # Check if notification already exists for this loan
+        existing_notification = Notifications.objects.filter(
+            user=loan.user,
+            notification_type='overdue',
+            message__icontains=loan.book.title
+        ).order_by('-created_at').first()
+        
+        # Only create notification if it doesn't exist or if it's been more than 7 days
+        should_create = True
+        if existing_notification:
+            days_since_notification = (today - existing_notification.created_at.date()).days
+            if days_since_notification < 7:
+                should_create = False
+        
+        if should_create:
+            notification_message = (
+                f"Overdue Notice: Your book '{loan.book.title}' is {late_days} day{'s' if late_days > 1 else ''} overdue. "
+                f"Please return it as soon as possible to avoid additional fines."
+            )
+            
+            Notifications.objects.create(
+                user=loan.user,
+                message=notification_message,
+                notification_type='overdue',
+                created_at=timezone.now(),
+                is_read=0
+            )
+            notifications_created += 1
+        else:
+            notifications_updated += 1
+    
+    return Response(
+        {
+            'message': f'Overdue notices processed. {notifications_created} new notifications created, {notifications_updated} already exist.',
+            'notifications_created': notifications_created,
+            'overdue_loans_count': overdue_loans.count()
         },
         status=status.HTTP_200_OK
     )

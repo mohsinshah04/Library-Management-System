@@ -19,6 +19,8 @@ urlpatterns = [
     
     # Notifications API
     path('notifications/', api_views.notification_list, name='notification_list'),
+    path('notifications/create/', api_views.notification_create, name='notification_create'),
+    path('notifications/trigger-overdue/', api_views.notification_trigger_overdue, name='notification_trigger_overdue'),
     path('notifications/<int:notification_id>/read/', api_views.notification_mark_read, name='notification_mark_read'),
     
     # Fines API

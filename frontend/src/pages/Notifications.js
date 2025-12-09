@@ -5,14 +5,40 @@ import './Notifications.css';
 
 function Notifications() {
   const [notifications, setNotifications] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
+  const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'overdue', 'reservation', 'alert'
+  const [showSendForm, setShowSendForm] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [triggering, setTriggering] = useState(false);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  
+  const isLibrarian = user?.role === 'librarian';
 
   useEffect(() => {
+    // Get user from localStorage
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const parsedUser = JSON.parse(userStr);
+        setUser(parsedUser);
+        
+        // Fetch users if librarian
+        if (parsedUser?.role === 'librarian') {
+          fetchUsers();
+        }
+      } catch (e) {
+        console.error('Error parsing user:', e);
+      }
+    }
+  }, []);
+  
+  useEffect(() => {
     fetchNotifications();
-  }, [filter]);
+  }, [filter, typeFilter]);
 
   const fetchNotifications = async () => {
     try {
@@ -26,6 +52,10 @@ function Notifications() {
         params.is_read = 'true';
       }
       
+      if (typeFilter !== 'all') {
+        params.type = typeFilter;
+      }
+      
       const response = await api.get('/notifications/', { params });
       setNotifications(response.data);
     } catch (err) {
@@ -33,6 +63,15 @@ function Notifications() {
       setError('Failed to load notifications. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/users/');
+      setUsers(response.data);
+    } catch (err) {
+      console.error('Error fetching users:', err);
     }
   };
 
@@ -111,31 +150,122 @@ function Notifications() {
           <button onClick={() => navigate(-1)} className="back-btn">
             ← Back
           </button>
-          <h1>Notifications</h1>
+          <h1>{isLibrarian ? 'Notification Management' : 'Notifications'}</h1>
           {unreadCount > 0 && (
             <span className="unread-badge">{unreadCount} unread</span>
           )}
+          {isLibrarian && (
+            <div className="librarian-actions">
+              <button
+                onClick={() => setShowSendForm(!showSendForm)}
+                className="action-btn send-btn"
+              >
+                {showSendForm ? '✕ Cancel' : '+ Send Notification'}
+              </button>
+              <button
+                onClick={handleTriggerOverdue}
+                className="action-btn trigger-btn"
+                disabled={triggering}
+              >
+                {triggering ? 'Processing...' : '⚠️ Trigger Overdue Notices'}
+              </button>
+            </div>
+          )}
         </div>
+        
+        {isLibrarian && showSendForm && (
+          <div className="send-notification-form">
+            <h3>Send Custom Notification</h3>
+            <form onSubmit={handleSendNotification}>
+              <div className="form-group">
+                <label htmlFor="user_id">Send to:</label>
+                <select id="user_id" name="user_id" required>
+                  <option value="">Select a user...</option>
+                  {users.map(u => (
+                    <option key={u.user_id} value={u.user_id}>
+                      {u.first_name} {u.last_name} ({u.email}) - {u.role}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="notification_type">Type:</label>
+                <select id="notification_type" name="notification_type">
+                  <option value="alert">Alert</option>
+                  <option value="overdue">Overdue</option>
+                  <option value="reservation">Reservation</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="message">Message:</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows="4"
+                  required
+                  placeholder="Enter notification message..."
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit" disabled={sending} className="submit-btn">
+                  {sending ? 'Sending...' : 'Send Notification'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         <div className="notifications-filters">
-          <button
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All
-          </button>
-          <button
-            className={`filter-btn ${filter === 'unread' ? 'active' : ''}`}
-            onClick={() => setFilter('unread')}
-          >
-            Unread ({unreadCount})
-          </button>
-          <button
-            className={`filter-btn ${filter === 'read' ? 'active' : ''}`}
-            onClick={() => setFilter('read')}
-          >
-            Read
-          </button>
+          <div className="filter-group">
+            <span className="filter-label">Status:</span>
+            <button
+              className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              All
+            </button>
+            <button
+              className={`filter-btn ${filter === 'unread' ? 'active' : ''}`}
+              onClick={() => setFilter('unread')}
+            >
+              Unread ({unreadCount})
+            </button>
+            <button
+              className={`filter-btn ${filter === 'read' ? 'active' : ''}`}
+              onClick={() => setFilter('read')}
+            >
+              Read
+            </button>
+          </div>
+          {isLibrarian && (
+            <div className="filter-group">
+              <span className="filter-label">Type:</span>
+              <button
+                className={`filter-btn ${typeFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setTypeFilter('all')}
+              >
+                All
+              </button>
+              <button
+                className={`filter-btn ${typeFilter === 'overdue' ? 'active' : ''}`}
+                onClick={() => setTypeFilter('overdue')}
+              >
+                Overdue
+              </button>
+              <button
+                className={`filter-btn ${typeFilter === 'reservation' ? 'active' : ''}`}
+                onClick={() => setTypeFilter('reservation')}
+              >
+                Reservation
+              </button>
+              <button
+                className={`filter-btn ${typeFilter === 'alert' ? 'active' : ''}`}
+                onClick={() => setTypeFilter('alert')}
+              >
+                Alert
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="notifications-list">
@@ -153,6 +283,11 @@ function Notifications() {
                   {getNotificationIcon(notification.notification_type)}
                 </div>
                 <div className="notification-content">
+                  {isLibrarian && notification.user_name && (
+                    <div className="notification-user">
+                      <strong>To:</strong> {notification.user_name} ({notification.user_email})
+                    </div>
+                  )}
                   <div className="notification-message">
                     {notification.message}
                   </div>
