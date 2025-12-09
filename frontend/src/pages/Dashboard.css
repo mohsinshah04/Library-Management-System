@@ -102,6 +102,30 @@
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.info-box.clickable {
+  cursor: pointer;
+  background: #fff;
+  border-color: #667eea;
+}
+
+.info-box.clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+  border-color: #764ba2;
+}
+
+.action-link {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.info-box.clickable:hover .action-link {
+  color: #764ba2;
+}
+
 .info-box:hover {
   transform: translateY(-5px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);

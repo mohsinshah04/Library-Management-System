@@ -87,15 +87,15 @@ function StudentDashboard() {
         </div>
 
         <div className="dashboard-content">
-          <div className="info-box">
-            <h3>📚 My Loans</h3>
-            <p>View your borrowed books</p>
-            <p className="coming-soon">(Coming soon)</p>
+          <div className="info-box clickable" onClick={() => navigate('/books')}>
+            <h3>🔍 Browse Books</h3>
+            <p>Find and browse available books</p>
+            <span className="action-link">View Books →</span>
           </div>
 
           <div className="info-box">
-            <h3>🔍 Search Books</h3>
-            <p>Find and browse available books</p>
+            <h3>📚 My Loans</h3>
+            <p>View your borrowed books</p>
             <p className="coming-soon">(Coming soon)</p>
           </div>
 

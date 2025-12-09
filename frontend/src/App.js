@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import StudentDashboard from './pages/StudentDashboard';
 import LibrarianDashboard from './pages/LibrarianDashboard';
+import Books from './pages/Books';
+import BookDetails from './pages/BookDetails';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -31,6 +33,25 @@ function App() {
             element={
               <ProtectedRoute role="librarian">
                 <LibrarianDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Books routes - accessible to authenticated users */}
+          <Route 
+            path="/books" 
+            element={
+              <ProtectedRoute>
+                <Books />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/books/:id" 
+            element={
+              <ProtectedRoute>
+                <BookDetails />
               </ProtectedRoute>
             } 
           />
