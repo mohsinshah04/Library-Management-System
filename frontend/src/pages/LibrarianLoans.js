@@ -96,9 +96,24 @@ function LibrarianLoans() {
   const handleReturn = async (loanId) => {
     try {
       setReturning(loanId);
-      await api.post(`/loans/${loanId}/return/`);
+      const response = await api.post(`/loans/${loanId}/return/`);
       await fetchLoans();
       await fetchBooks(); // Refresh to update available copies
+      
+      // Show fine information if applicable
+      if (response.data.fine_created) {
+        alert(
+          `Book returned successfully!\n\n` +
+          `Fine Created: $${response.data.fine_amount.toFixed(2)}\n` +
+          `Late Days: ${response.data.late_days} day${response.data.late_days > 1 ? 's' : ''}`
+        );
+      } else if (response.data.late_days > 0) {
+        alert(
+          `Book returned successfully!\n\n` +
+          `Late Days: ${response.data.late_days} day${response.data.late_days > 1 ? 's' : ''}\n` +
+          `(Fine already exists for this loan)`
+        );
+      }
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to return book.');
       console.error('Error returning book:', err);

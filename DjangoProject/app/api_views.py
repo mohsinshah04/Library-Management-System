@@ -232,8 +232,43 @@ def loan_return(request, loan_id):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    # Calculate return date
+    return_date = timezone.now().date()
+    
+    # Calculate late days and create fine if overdue
+    late_days = 0
+    fine_created = False
+    fine_amount = 0.00
+    if return_date > loan.due_date:
+        late_days = (return_date - loan.due_date).days
+        # Calculate fine: $1.00 per day late (minimum $1.00)
+        fine_amount = max(1.00, late_days * 1.00)
+        
+        # Check if fine already exists for this loan
+        existing_fine = Fines.objects.filter(loan=loan).first()
+        if not existing_fine:
+            # Create fine automatically
+            Fines.objects.create(
+                user=loan.user,
+                loan=loan,
+                amount=fine_amount,
+                paid=0,
+                date_issued=timezone.now()
+            )
+            fine_created = True
+            
+            # Create notification for the student about the fine
+            notification_message = f"Fine of ${fine_amount:.2f} issued for late return of '{loan.book.title}' ({late_days} day{'s' if late_days > 1 else ''} late)."
+            Notifications.objects.create(
+                user=loan.user,
+                message=notification_message,
+                notification_type='overdue',
+                created_at=timezone.now(),
+                is_read=0
+            )
+    
     # Update loan
-    loan.return_date = timezone.now().date()
+    loan.return_date = return_date
     loan.save()
     
     # Update book availability
@@ -264,13 +299,19 @@ def loan_return(request, loan_id):
         first_reservation.status = 'ready'
         first_reservation.save()
     
-    return Response(
-        {
-            'message': 'Book returned successfully.',
-            'loan': LoanSerializer(loan).data
-        },
-        status=status.HTTP_200_OK
-    )
+    response_data = {
+        'message': 'Book returned successfully.',
+        'loan': LoanSerializer(loan).data
+    }
+    
+    if late_days > 0:
+        response_data['late_days'] = late_days
+        response_data['fine_created'] = fine_created
+        if fine_created:
+            response_data['fine_amount'] = float(fine_amount)
+            response_data['message'] = f'Book returned successfully. Fine of ${fine_amount:.2f} issued for {late_days} day{"s" if late_days > 1 else ""} late return.'
+    
+    return Response(response_data, status=status.HTTP_200_OK)
 
 
 # -----------------------

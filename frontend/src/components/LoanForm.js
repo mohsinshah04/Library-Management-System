@@ -7,6 +7,8 @@ function LoanForm({ onSubmit, onCancel, loading, books = [], users = [] }) {
     book: '',
     due_date: '',
   });
+  const [studentSearch, setStudentSearch] = useState('');
+  const [bookSearch, setBookSearch] = useState('');
 
   // Calculate default due date (14 days from now)
   useEffect(() => {
@@ -22,6 +24,27 @@ function LoanForm({ onSubmit, onCancel, loading, books = [], users = [] }) {
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
+  // Filter students by search term (name or email)
+  const filteredUsers = users.filter(user => {
+    if (!studentSearch) return true;
+    const searchLower = studentSearch.toLowerCase();
+    const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+    const email = (user.email || '').toLowerCase();
+    const username = (user.username || '').toLowerCase();
+    return fullName.includes(searchLower) || 
+           email.includes(searchLower) || 
+           username.includes(searchLower);
+  });
+
+  // Filter books by search term (title or ISBN)
+  const filteredBooks = books.filter(book => {
+    if (!bookSearch) return true;
+    const searchLower = bookSearch.toLowerCase();
+    const title = (book.title || '').toLowerCase();
+    const isbn = (book.isbn || '').toLowerCase();
+    return title.includes(searchLower) || isbn.includes(searchLower);
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
@@ -36,6 +59,14 @@ function LoanForm({ onSubmit, onCancel, loading, books = [], users = [] }) {
       <div className="form-row">
         <div className="form-group">
           <label>Student *</label>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={studentSearch}
+            onChange={(e) => setStudentSearch(e.target.value)}
+            className="search-input"
+            disabled={loading}
+          />
           <select
             name="user"
             value={form.user}
@@ -45,18 +76,29 @@ function LoanForm({ onSubmit, onCancel, loading, books = [], users = [] }) {
             className="form-select"
           >
             <option value="">Select a student...</option>
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <option key={user.user_id} value={user.user_id}>
-                {user.first_name} {user.last_name} ({user.username})
+                {user.first_name} {user.last_name} ({user.username}) - {user.email}
               </option>
             ))}
           </select>
+          {studentSearch && filteredUsers.length === 0 && (
+            <p className="form-hint">No students found matching "{studentSearch}"</p>
+          )}
         </div>
       </div>
 
       <div className="form-row">
         <div className="form-group">
           <label>Book *</label>
+          <input
+            type="text"
+            placeholder="Search by title or ISBN..."
+            value={bookSearch}
+            onChange={(e) => setBookSearch(e.target.value)}
+            className="search-input"
+            disabled={loading}
+          />
           <select
             name="book"
             value={form.book}
@@ -66,7 +108,7 @@ function LoanForm({ onSubmit, onCancel, loading, books = [], users = [] }) {
             className="form-select"
           >
             <option value="">Select a book...</option>
-            {books
+            {filteredBooks
               .filter(book => book.available_copies > 0)
               .map((book) => (
                 <option key={book.book_id} value={book.book_id}>
@@ -74,7 +116,10 @@ function LoanForm({ onSubmit, onCancel, loading, books = [], users = [] }) {
                 </option>
               ))}
           </select>
-          {books.filter(book => book.available_copies > 0).length === 0 && (
+          {bookSearch && filteredBooks.filter(book => book.available_copies > 0).length === 0 && (
+            <p className="form-hint">No available books found matching "{bookSearch}"</p>
+          )}
+          {!bookSearch && filteredBooks.filter(book => book.available_copies > 0).length === 0 && (
             <p className="form-hint">No books available for loan</p>
           )}
         </div>

@@ -31,6 +31,26 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.search-input {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.search-input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
 .form-group input:focus,
 .form-select:focus {
   outline: none;
