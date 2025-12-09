@@ -93,10 +93,10 @@ function LibrarianDashboard() {
             <span className="action-link">Go to Books →</span>
           </div>
 
-          <div className="info-box">
-            <h3>👥 Manage Users</h3>
-            <p>View and manage student accounts</p>
-            <p className="coming-soon">(Coming soon)</p>
+          <div className="info-box clickable" onClick={() => navigate('/librarian/reservations')}>
+            <h3>📋 Manage Reservations</h3>
+            <p>View and manage all book reservations</p>
+            <span className="action-link">View Reservations →</span>
           </div>
 
           <div className="info-box clickable" onClick={() => navigate('/librarian/loans')}>

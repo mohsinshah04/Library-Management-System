@@ -9,10 +9,54 @@ function BookDetails() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reserving, setReserving] = useState(false);
 
   useEffect(() => {
     fetchBookDetails();
   }, [id]);
+
+  const handleReserve = async () => {
+    if (!book || book.available_copies <= 0) {
+      alert('This book is not available for reservation.');
+      return;
+    }
+
+    const confirmReserve = window.confirm(`Reserve "${book.title}"?`);
+    if (!confirmReserve) return;
+
+    try {
+      setReserving(true);
+      await api.post('/reservations/', {
+        book: book.book_id,
+        status: 'pending'
+      });
+      alert('Book reserved successfully!');
+      navigate('/student/reservations');
+    } catch (err) {
+      const errorData = err.response?.data;
+      let errorMessage = 'Failed to reserve book.';
+      
+      if (errorData) {
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else {
+          const fieldErrors = Object.entries(errorData)
+            .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+            .join('\n');
+          errorMessage = fieldErrors || JSON.stringify(errorData);
+        }
+      }
+      
+      alert(errorMessage);
+      console.error('Error reserving book:', err.response?.data);
+    } finally {
+      setReserving(false);
+    }
+  };
 
   const fetchBookDetails = async () => {
     try {
@@ -164,8 +208,12 @@ function BookDetails() {
 
           <div className="book-details-actions">
             {isAvailable && (
-              <button className="reserve-btn">
-                Reserve This Book
+              <button 
+                className="reserve-btn"
+                onClick={handleReserve}
+                disabled={reserving}
+              >
+                {reserving ? 'Reserving...' : 'Reserve This Book'}
               </button>
             )}
           </div>

@@ -9,6 +9,8 @@ import BookDetails from './pages/BookDetails';
 import LibrarianBooks from './pages/LibrarianBooks';
 import StudentLoans from './pages/StudentLoans';
 import LibrarianLoans from './pages/LibrarianLoans';
+import StudentReservations from './pages/StudentReservations';
+import LibrarianReservations from './pages/LibrarianReservations';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -84,6 +86,26 @@ function App() {
             element={
               <ProtectedRoute role="librarian">
                 <LibrarianLoans />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Student Reservations */}
+          <Route 
+            path="/student/reservations" 
+            element={
+              <ProtectedRoute role="student">
+                <StudentReservations />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Librarian Reservations */}
+          <Route 
+            path="/librarian/reservations" 
+            element={
+              <ProtectedRoute role="librarian">
+                <LibrarianReservations />
               </ProtectedRoute>
             } 
           />
