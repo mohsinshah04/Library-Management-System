@@ -115,6 +115,57 @@ function Notifications() {
         return '📬';
     }
   };
+  
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const user_id = parseInt(formData.get('user_id'));
+    const message = formData.get('message');
+    const notification_type = formData.get('notification_type') || 'alert';
+    
+    if (!user_id || !message.trim()) {
+      alert('Please select a user and enter a message.');
+      return;
+    }
+    
+    setSending(true);
+    try {
+      await api.post('/notifications/create/', {
+        user_id,
+        message: message.trim(),
+        notification_type
+      });
+      alert('Notification sent successfully!');
+      setShowSendForm(false);
+      e.target.reset();
+      fetchNotifications();
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to send notification.';
+      alert(errorMsg);
+      console.error('Error sending notification:', err);
+    } finally {
+      setSending(false);
+    }
+  };
+  
+  const handleTriggerOverdue = async () => {
+    if (!window.confirm('This will send overdue notices to all students with overdue books. Continue?')) {
+      return;
+    }
+    
+    setTriggering(true);
+    try {
+      const response = await api.post('/notifications/trigger-overdue/');
+      alert(response.data.message || 'Overdue notices processed successfully!');
+      fetchNotifications();
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to trigger overdue notices.';
+      alert(errorMsg);
+      console.error('Error triggering overdue notices:', err);
+    } finally {
+      setTriggering(false);
+    }
+  };
 
   if (loading) {
     return (
