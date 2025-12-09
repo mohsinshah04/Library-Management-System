@@ -239,6 +239,30 @@ def loan_return(request, loan_id):
     loan.book.available_copies += 1
     loan.book.save()
     
+    # Check for pending reservations and notify the first student in queue
+    pending_reservations = Reservations.objects.filter(
+        book=loan.book,
+        status='pending'
+    ).order_by('reservation_date')
+    
+    if pending_reservations.exists() and loan.book.available_copies > 0:
+        # Notify the first student in the reservation queue
+        first_reservation = pending_reservations.first()
+        
+        # Create notification for the student
+        notification_message = f"Book '{loan.book.title}' is now available! Your reservation is ready."
+        Notifications.objects.create(
+            user=first_reservation.user,
+            message=notification_message,
+            notification_type='reservation',
+            created_at=timezone.now(),
+            is_read=0
+        )
+        
+        # Update reservation status to 'ready'
+        first_reservation.status = 'ready'
+        first_reservation.save()
+    
     return Response(
         {
             'message': 'Book returned successfully.',

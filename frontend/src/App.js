@@ -11,6 +11,7 @@ import StudentLoans from './pages/StudentLoans';
 import LibrarianLoans from './pages/LibrarianLoans';
 import StudentReservations from './pages/StudentReservations';
 import LibrarianReservations from './pages/LibrarianReservations';
+import Notifications from './pages/Notifications';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -106,6 +107,16 @@ function App() {
             element={
               <ProtectedRoute role="librarian">
                 <LibrarianReservations />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Notifications - accessible to all authenticated users */}
+          <Route 
+            path="/notifications" 
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             } 
           />

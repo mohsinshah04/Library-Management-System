@@ -104,6 +104,12 @@ function StudentDashboard() {
             <p>View your book reservations</p>
             <span className="action-link">View Reservations →</span>
           </div>
+
+          <div className="info-box clickable" onClick={() => navigate('/notifications')}>
+            <h3>🔔 Notifications</h3>
+            <p>View your notifications and alerts</p>
+            <span className="action-link">View Notifications →</span>
+          </div>
         </div>
 
         <div className="debug-info">
