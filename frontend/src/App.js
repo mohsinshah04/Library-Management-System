@@ -6,6 +6,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import LibrarianDashboard from './pages/LibrarianDashboard';
 import Books from './pages/Books';
 import BookDetails from './pages/BookDetails';
+import LibrarianBooks from './pages/LibrarianBooks';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -33,6 +34,15 @@ function App() {
             element={
               <ProtectedRoute role="librarian">
                 <LibrarianDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/librarian/books" 
+            element={
+              <ProtectedRoute role="librarian">
+                <LibrarianBooks />
               </ProtectedRoute>
             } 
           />

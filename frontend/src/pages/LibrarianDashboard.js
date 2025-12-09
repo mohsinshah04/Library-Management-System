@@ -87,10 +87,10 @@ function LibrarianDashboard() {
         </div>
 
         <div className="dashboard-content">
-          <div className="info-box">
+          <div className="info-box clickable" onClick={() => navigate('/librarian/books')}>
             <h3>📚 Manage Books</h3>
             <p>Add, edit, and manage library books</p>
-            <p className="coming-soon">(Coming soon)</p>
+            <span className="action-link">Go to Books →</span>
           </div>
 
           <div className="info-box">
