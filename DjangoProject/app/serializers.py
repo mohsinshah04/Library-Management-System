@@ -215,6 +215,10 @@ class BookSerializer(serializers.ModelSerializer):
             'available_copies', 'authors', 'categories', 'status', 'is_deleted'
         ]
         read_only_fields = ['book_id']
+        extra_kwargs = {
+            'description': {'required': False, 'allow_null': True},
+            'is_deleted': {'required': False, 'allow_null': True}
+        }
     
     def get_authors(self, obj):
         """Get all authors for this book"""
@@ -234,6 +238,16 @@ class BookSerializer(serializers.ModelSerializer):
             return 'available'
         else:
             return 'out on loan'
+    
+    def to_representation(self, instance):
+        """Override to handle missing fields gracefully"""
+        data = super().to_representation(instance)
+        # Handle missing fields if migration hasn't been run
+        if 'description' not in data or data['description'] is None:
+            data['description'] = None
+        if 'is_deleted' not in data:
+            data['is_deleted'] = False
+        return data
 
 
 class BookCreateSerializer(serializers.ModelSerializer):

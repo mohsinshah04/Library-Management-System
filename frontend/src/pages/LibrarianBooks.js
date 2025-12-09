@@ -36,8 +36,9 @@ function LibrarianBooks() {
       if (err.response?.status === 401) {
         navigate('/login');
       } else {
-        setError('Failed to load books.');
-        console.error(err);
+        const errorMsg = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to load books.';
+        setError(errorMsg);
+        console.error('Error loading books:', err.response?.data || err);
       }
     } finally {
       setLoading(false);

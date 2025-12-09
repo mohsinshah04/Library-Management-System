@@ -43,8 +43,9 @@ function Books() {
       if (err.response?.status === 401) {
         navigate('/login');
       } else {
-        setError('Failed to load books. Please try again.');
-        console.error('Error fetching books:', err);
+        const errorMsg = err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to load books. Please try again.';
+        setError(errorMsg);
+        console.error('Error loading books:', err.response?.data || err);
       }
     } finally {
       setLoading(false);

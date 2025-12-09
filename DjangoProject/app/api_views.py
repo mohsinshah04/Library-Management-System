@@ -72,7 +72,18 @@ def book_list_create(request):
         branch_id = request.query_params.get('branch', None)
         available_only = request.query_params.get('available_only', None)
         
-        books = Books.objects.filter(is_deleted=False)
+        # Filter out deleted books if is_deleted field exists
+        # Handle case where migration hasn't been run yet
+        from django.db import OperationalError, ProgrammingError
+        try:
+            books = Books.objects.filter(is_deleted=False)
+        except (OperationalError, ProgrammingError) as e:
+            # Database column doesn't exist yet (migration not run)
+            # Fallback to get all books
+            books = Books.objects.all()
+        except Exception:
+            # Other errors - fallback to get all books
+            books = Books.objects.all()
         
         # Apply filters
         if search:
@@ -203,14 +214,21 @@ def book_detail(request, book_id):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Soft delete (recommended)
-        book.is_deleted = True
-        book.save()
-        
-        return Response(
-            {'message': 'Book deleted successfully (soft delete).'},
-            status=status.HTTP_200_OK
-        )
+        # Soft delete (recommended) - check if field exists
+        if hasattr(book, 'is_deleted'):
+            book.is_deleted = True
+            book.save()
+            return Response(
+                {'message': 'Book deleted successfully (soft delete).'},
+                status=status.HTTP_200_OK
+            )
+        else:
+            # Hard delete if is_deleted field doesn't exist
+            book.delete()
+            return Response(
+                {'message': 'Book deleted successfully.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
 
 
 # -----------------------
