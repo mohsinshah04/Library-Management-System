@@ -65,6 +65,10 @@
   border-left-color: #ffc107;
 }
 
+.stat-card.ready-stat {
+  border-left-color: #17a2b8;
+}
+
 .stat-card.active-stat {
   border-left-color: #28a745;
 }

@@ -38,7 +38,22 @@ function LibrarianReservations() {
     return reservation.status.toLowerCase() === filter.toLowerCase();
   });
 
+  const handleUpdateStatus = async (reservationId, newStatus) => {
+    try {
+      setLoading(true);
+      await api.post(`/reservations/${reservationId}/update-status/`, { status: newStatus });
+      await fetchReservations();
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || `Failed to update reservation status.`;
+      alert(errorMsg);
+      console.error('Error updating reservation status:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const pendingCount = reservations.filter(r => r.status === 'pending').length;
+  const readyCount = reservations.filter(r => r.status === 'ready').length;
   const activeCount = reservations.filter(r => r.status === 'active').length;
   const completedCount = reservations.filter(r => r.status === 'completed').length;
   const cancelledCount = reservations.filter(r => r.status === 'cancelled').length;
@@ -79,6 +94,10 @@ function LibrarianReservations() {
             <div className="stat-number">{pendingCount}</div>
             <div className="stat-label">Pending</div>
           </div>
+          <div className="stat-card ready-stat">
+            <div className="stat-number">{readyCount}</div>
+            <div className="stat-label">Ready</div>
+          </div>
           <div className="stat-card active-stat">
             <div className="stat-number">{activeCount}</div>
             <div className="stat-label">Active</div>
@@ -102,6 +121,12 @@ function LibrarianReservations() {
             onClick={() => setFilter('pending')}
           >
             Pending ({pendingCount})
+          </button>
+          <button 
+            className={`filter-tab ${filter === 'ready' ? 'active' : ''}`}
+            onClick={() => setFilter('ready')}
+          >
+            Ready ({readyCount})
           </button>
           <button 
             className={`filter-tab ${filter === 'active' ? 'active' : ''}`}
@@ -147,6 +172,8 @@ function LibrarianReservations() {
                 key={reservation.reservation_id}
                 reservation={reservation}
                 showCancelButton={false}
+                isLibrarian={true}
+                onUpdateStatus={handleUpdateStatus}
               />
             ))}
           </div>

@@ -15,6 +15,7 @@ urlpatterns = [
     # Reservations API
     path('reservations/', api_views.reservation_list_create, name='reservation_list_create'),
     path('reservations/<int:reservation_id>/cancel/', api_views.reservation_cancel, name='reservation_cancel'),
+    path('reservations/<int:reservation_id>/update-status/', api_views.reservation_update_status, name='reservation_update_status'),
     
     # Notifications API
     path('notifications/', api_views.notification_list, name='notification_list'),

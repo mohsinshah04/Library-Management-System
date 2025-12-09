@@ -143,13 +143,14 @@ class ReservationSerializer(serializers.ModelSerializer):
     """Serializer for Reservations"""
     book_title = serializers.CharField(source='book.title', read_only=True)
     book_isbn = serializers.CharField(source='book.isbn', read_only=True)
+    book_available_copies = serializers.IntegerField(source='book.available_copies', read_only=True)
     user_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Reservations
         fields = [
             'reservation_id', 'user', 'user_name', 'book', 'book_title', 'book_isbn',
-            'reservation_date', 'status'
+            'book_available_copies', 'reservation_date', 'status'
         ]
         read_only_fields = ['reservation_id', 'reservation_date']
     
@@ -166,7 +167,7 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
     
     def validate_status(self, value):
         """Validate status"""
-        valid_statuses = ['pending', 'active', 'completed', 'cancelled']
+        valid_statuses = ['pending', 'ready', 'picked_up', 'active', 'completed', 'cancelled']
         if value not in valid_statuses:
             raise serializers.ValidationError(
                 f'Status must be one of: {", ".join(valid_statuses)}'

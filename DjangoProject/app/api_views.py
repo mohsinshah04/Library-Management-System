@@ -367,6 +367,80 @@ def reservation_cancel(request, reservation_id):
     )
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reservation_update_status(request, reservation_id):
+    """
+    Update reservation status (librarian only)
+    Used to mark reservations as ready, picked_up, or cancel them
+    """
+    if not is_librarian(request.user):
+        return Response(
+            {'error': 'Only librarians can update reservation status.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    reservation = get_object_or_404(Reservations, pk=reservation_id)
+    new_status = request.data.get('status')
+    
+    if not new_status:
+        return Response(
+            {'error': 'Status is required.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    valid_statuses = ['ready', 'picked_up', 'cancelled', 'completed']
+    if new_status not in valid_statuses:
+        return Response(
+            {'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Business logic checks
+    if new_status == 'ready':
+        # Check if book is available
+        if reservation.book.available_copies <= 0:
+            return Response(
+                {'error': 'Book is not available. Cannot mark reservation as ready.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        # Only pending reservations can be marked as ready
+        if reservation.status != 'pending':
+            return Response(
+                {'error': 'Only pending reservations can be marked as ready.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    elif new_status == 'picked_up':
+        # Only ready reservations can be marked as picked_up
+        if reservation.status not in ['ready', 'pending']:
+            return Response(
+                {'error': 'Only ready or pending reservations can be marked as picked_up.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        # When marked as picked_up, we should create a loan automatically
+        # For now, just update status - librarian can create loan separately
+    
+    elif new_status == 'cancelled':
+        if reservation.status == 'cancelled':
+            return Response(
+                {'error': 'This reservation is already cancelled.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    # Update status
+    reservation.status = new_status
+    reservation.save()
+    
+    return Response(
+        {
+            'message': f'Reservation status updated to {new_status}.',
+            'reservation': ReservationSerializer(reservation).data
+        },
+        status=status.HTTP_200_OK
+    )
+
+
 # -----------------------
 # Notifications API Views
 # -----------------------

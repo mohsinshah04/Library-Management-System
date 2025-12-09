@@ -1,7 +1,15 @@
 import React from 'react';
 import './ReservationCard.css';
 
-function ReservationCard({ reservation, onCancel, showCancelButton = false }) {
+function ReservationCard({ 
+  reservation, 
+  onCancel, 
+  showCancelButton = false,
+  isLibrarian = false,
+  onMarkReady = null,
+  onMarkPickedUp = null,
+  onUpdateStatus = null
+}) {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -18,6 +26,10 @@ function ReservationCard({ reservation, onCancel, showCancelButton = false }) {
     switch (status.toLowerCase()) {
       case 'pending':
         return 'status-pending';
+      case 'ready':
+        return 'status-ready';
+      case 'picked_up':
+        return 'status-picked-up';
       case 'active':
         return 'status-active';
       case 'completed':
@@ -40,6 +52,12 @@ function ReservationCard({ reservation, onCancel, showCancelButton = false }) {
       
       <div className="reservation-card-body">
         <div className="reservation-info">
+          {isLibrarian && reservation.user_name && (
+            <p className="reservation-user">
+              <strong>Student:</strong> {reservation.user_name}
+            </p>
+          )}
+          
           <p className="reservation-isbn">
             <strong>ISBN:</strong> {reservation.book_isbn}
           </p>
@@ -48,12 +66,19 @@ function ReservationCard({ reservation, onCancel, showCancelButton = false }) {
             <strong>Reserved:</strong> {formatDate(reservation.reservation_date)}
           </p>
           
+          {isLibrarian && reservation.book_available_copies !== undefined && (
+            <p className="reservation-availability">
+              <strong>Available Copies:</strong> {reservation.book_available_copies}
+            </p>
+          )}
+          
           <p className="reservation-status-text">
             <strong>Status:</strong> {reservation.status}
           </p>
         </div>
       </div>
       
+      {/* Student Actions */}
       {showCancelButton && reservation.status !== 'cancelled' && reservation.status !== 'completed' && (
         <div className="reservation-card-footer">
           <button 
@@ -61,6 +86,34 @@ function ReservationCard({ reservation, onCancel, showCancelButton = false }) {
             className="cancel-btn"
           >
             Cancel Reservation
+          </button>
+        </div>
+      )}
+      
+      {/* Librarian Actions */}
+      {isLibrarian && reservation.status !== 'cancelled' && reservation.status !== 'completed' && (
+        <div className="reservation-card-footer">
+          {reservation.status === 'pending' && reservation.book_available_copies > 0 && (
+            <button 
+              onClick={() => onUpdateStatus && onUpdateStatus(reservation.reservation_id, 'ready')} 
+              className="action-btn ready-btn"
+            >
+              Mark as Ready
+            </button>
+          )}
+          {(reservation.status === 'ready' || reservation.status === 'pending') && (
+            <button 
+              onClick={() => onUpdateStatus && onUpdateStatus(reservation.reservation_id, 'picked_up')} 
+              className="action-btn picked-up-btn"
+            >
+              Mark as Picked Up
+            </button>
+          )}
+          <button 
+            onClick={() => onUpdateStatus && onUpdateStatus(reservation.reservation_id, 'cancelled')} 
+            className="action-btn cancel-btn"
+          >
+            Cancel
           </button>
         </div>
       )}

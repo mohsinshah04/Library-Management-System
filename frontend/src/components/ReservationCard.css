@@ -31,6 +31,14 @@
   opacity: 0.7;
 }
 
+.reservation-card.status-ready {
+  border-left-color: #17a2b8;
+}
+
+.reservation-card.status-picked-up {
+  border-left-color: #28a745;
+}
+
 .reservation-card-header {
   display: flex;
   justify-content: space-between;
@@ -77,6 +85,16 @@
   color: #721c24;
 }
 
+.status-badge.status-ready {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.status-picked-up {
+  background-color: #d4edda;
+  color: #155724;
+}
+
 .reservation-card-body {
   margin-bottom: 15px;
 }
@@ -102,8 +120,10 @@
 .reservation-card-footer {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
   padding-top: 15px;
   border-top: 1px solid #e0e0e0;
+  flex-wrap: wrap;
 }
 
 .cancel-btn {
@@ -119,6 +139,49 @@
 }
 
 .cancel-btn:hover {
+  background-color: #c82333;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.ready-btn {
+  background-color: #17a2b8;
+}
+
+.ready-btn:hover {
+  background-color: #138496;
+}
+
+.picked-up-btn {
+  background-color: #28a745;
+}
+
+.picked-up-btn:hover {
+  background-color: #218838;
+}
+
+.action-btn.cancel-btn {
+  background-color: #dc3545;
+}
+
+.action-btn.cancel-btn:hover {
   background-color: #c82333;
 }
 
