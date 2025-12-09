@@ -280,7 +280,8 @@ def reservation_list_create(request):
     
     elif request.method == 'POST':
         app_user = get_app_user(request.user)
-        
+        data = request.data.copy()  # make mutable copy
+
         if not app_user:
             return Response(
                 {'error': 'User not found in library system.'},
@@ -289,9 +290,9 @@ def reservation_list_create(request):
         
         # Students can only create reservations for themselves
         if not is_librarian(request.user):
-            request.data['user'] = app_user.user_id
+            data['user'] = app_user.user_id
         
-        serializer = ReservationCreateSerializer(data=request.data)
+        serializer = ReservationCreateSerializer(data=data)
         if serializer.is_valid():
             reservation = serializer.save()
             reservation.reservation_date = timezone.now()
