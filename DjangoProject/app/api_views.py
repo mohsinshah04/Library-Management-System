@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+import secrets
 
 from .models import Books, Loans, Reservations, Notifications, Fines, Users
 from .serializers import (
@@ -28,14 +29,28 @@ def is_librarian(user):
 
 
 def get_app_user(user):
-    """Get app.Users instance from accounts.User"""
-    # Try to find matching user in app.Users by username or email
+    """
+    Get (or create) app.Users instance from accounts.User.
+    If missing, auto-create a minimal record so student flows don't fail.
+    """
     try:
-        app_user = Users.objects.get(username=user.username)
-        return app_user
+        return Users.objects.get(username=user.username)
     except Users.DoesNotExist:
-        # If not found, return None (user needs to be created in app.Users)
-        return None
+        # Auto-create a corresponding legacy user record
+        try:
+            role = getattr(user, 'role', 'student')
+            password_stub = secrets.token_hex(16)  # not used for auth here
+            return Users.objects.create(
+                username=user.username,
+                password=password_stub,
+                email=user.email or f"{user.username}@example.com",
+                first_name=user.first_name or '',
+                last_name=user.last_name or '',
+                role=role if role in dict(Users.ROLE_CHOICES) else 'student',
+                date_created=timezone.now(),
+            )
+        except Exception:
+            return None
 
 
 # -----------------------
