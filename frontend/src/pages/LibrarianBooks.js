@@ -44,7 +44,28 @@ function LibrarianBooks() {
       setEditingBook(null);
       await fetchBooks();
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to add book');
+      // Show detailed error messages
+      const errorData = err.response?.data;
+      let errorMessage = 'Failed to add book.';
+      
+      if (errorData) {
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else {
+          // Format field-specific errors
+          const fieldErrors = Object.entries(errorData)
+            .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+            .join('\n');
+          errorMessage = fieldErrors || JSON.stringify(errorData);
+        }
+      }
+      
+      alert(errorMessage);
+      console.error('Error creating book:', err.response?.data);
     } finally {
       setSaving(false);
     }
@@ -58,7 +79,28 @@ function LibrarianBooks() {
       setEditingBook(null);
       await fetchBooks();
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to update book');
+      // Show detailed error messages
+      const errorData = err.response?.data;
+      let errorMessage = 'Failed to update book.';
+      
+      if (errorData) {
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else {
+          // Format field-specific errors
+          const fieldErrors = Object.entries(errorData)
+            .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+            .join('\n');
+          errorMessage = fieldErrors || JSON.stringify(errorData);
+        }
+      }
+      
+      alert(errorMessage);
+      console.error('Error updating book:', err.response?.data);
     } finally {
       setSaving(false);
     }

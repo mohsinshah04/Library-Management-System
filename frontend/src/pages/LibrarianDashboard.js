@@ -99,10 +99,10 @@ function LibrarianDashboard() {
             <p className="coming-soon">(Coming soon)</p>
           </div>
 
-          <div className="info-box">
-            <h3>📊 View Loans</h3>
-            <p>Monitor all book loans and returns</p>
-            <p className="coming-soon">(Coming soon)</p>
+          <div className="info-box clickable" onClick={() => navigate('/librarian/loans')}>
+            <h3>📊 Manage Loans</h3>
+            <p>Issue books and monitor all loans</p>
+            <span className="action-link">Manage Loans →</span>
           </div>
 
           <div className="info-box">

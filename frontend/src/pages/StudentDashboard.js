@@ -93,10 +93,10 @@ function StudentDashboard() {
             <span className="action-link">View Books →</span>
           </div>
 
-          <div className="info-box">
+          <div className="info-box clickable" onClick={() => navigate('/student/loans')}>
             <h3>📚 My Loans</h3>
             <p>View your borrowed books</p>
-            <p className="coming-soon">(Coming soon)</p>
+            <span className="action-link">View Loans →</span>
           </div>
 
           <div className="info-box">

@@ -1,0 +1,128 @@
+.loan-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-left: 4px solid #007bff;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.loan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.loan-card.overdue {
+  border-left-color: #dc3545;
+  background-color: #fff5f5;
+}
+
+.loan-card.returned {
+  border-left-color: #28a745;
+  opacity: 0.8;
+}
+
+.loan-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.loan-book-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.overdue-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #dc3545;
+  color: white;
+  white-space: nowrap;
+}
+
+.returned-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #28a745;
+  color: white;
+  white-space: nowrap;
+}
+
+.loan-card-body {
+  margin-bottom: 15px;
+}
+
+.loan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loan-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.loan-info strong {
+  color: #333;
+  margin-right: 5px;
+}
+
+.due-date.overdue-text {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.loan-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.return-btn {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.return-btn:hover {
+  background-color: #218838;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .loan-card {
+    padding: 15px;
+  }
+  
+  .loan-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .loan-book-title {
+    font-size: 1.1rem;
+  }
+}
+

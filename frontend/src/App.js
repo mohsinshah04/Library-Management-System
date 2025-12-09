@@ -7,6 +7,8 @@ import LibrarianDashboard from './pages/LibrarianDashboard';
 import Books from './pages/Books';
 import BookDetails from './pages/BookDetails';
 import LibrarianBooks from './pages/LibrarianBooks';
+import StudentLoans from './pages/StudentLoans';
+import LibrarianLoans from './pages/LibrarianLoans';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -62,6 +64,26 @@ function App() {
             element={
               <ProtectedRoute>
                 <BookDetails />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Student Loans */}
+          <Route 
+            path="/student/loans" 
+            element={
+              <ProtectedRoute role="student">
+                <StudentLoans />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Librarian Loans */}
+          <Route 
+            path="/librarian/loans" 
+            element={
+              <ProtectedRoute role="librarian">
+                <LibrarianLoans />
               </ProtectedRoute>
             } 
           />
