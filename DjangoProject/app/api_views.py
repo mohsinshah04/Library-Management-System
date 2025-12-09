@@ -294,12 +294,12 @@ def reservation_list_create(request):
         
         serializer = ReservationCreateSerializer(data=data)
         if serializer.is_valid():
-            reservation = serializer.save()
-            reservation.reservation_date = timezone.now()
-            if 'status' not in request.data:
-                reservation.status = 'pending'
-            reservation.save()
-            
+            # Ensure required fields are set before hitting DB
+            reservation = serializer.save(
+                reservation_date=timezone.now(),
+                status=data.get('status', 'pending')
+            )
+
             return Response(
                 ReservationSerializer(reservation).data,
                 status=status.HTTP_201_CREATED
