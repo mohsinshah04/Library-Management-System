@@ -72,7 +72,12 @@ function LibrarianLoans() {
       let errorMessage = 'Failed to create loan.';
       
       if (errorData) {
-        if (typeof errorData === 'string') {
+        // If backend returned HTML, avoid dumping it in an alert
+        const looksLikeHtml = typeof errorData === 'string' && errorData.trim().startsWith('<');
+        if (looksLikeHtml) {
+          errorMessage = 'Server error occurred. Please check the console for details.';
+          console.error('Backend returned HTML error:', errorData);
+        } else if (typeof errorData === 'string') {
           errorMessage = errorData;
         } else if (errorData.error) {
           errorMessage = errorData.error;
@@ -84,10 +89,14 @@ function LibrarianLoans() {
             .join('\n');
           errorMessage = fieldErrors || JSON.stringify(errorData);
         }
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Server error occurred. Please try again or contact support.';
+      } else if (!err.response) {
+        errorMessage = 'Network error. Please check your connection.';
       }
       
       alert(errorMessage);
-      console.error('Error creating loan:', err.response?.data);
+      console.error('Error creating loan:', err.response?.data || err.message);
     } finally {
       setLoading(false);
     }

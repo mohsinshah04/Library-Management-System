@@ -187,8 +187,9 @@ def loan_list_create(request):
         
         serializer = LoanCreateSerializer(data=request.data)
         if serializer.is_valid():
-            loan = serializer.save(commit=False)
-            book = loan.book
+            # Get the book before creating loan
+            book_id = serializer.validated_data['book'].book_id
+            book = Books.objects.get(pk=book_id)
             
             # Check availability
             if book.available_copies <= 0:
@@ -197,13 +198,12 @@ def loan_list_create(request):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
+            # Create loan with loan_date set
+            loan = serializer.save(loan_date=timezone.now())
+            
             # Update book availability
             book.available_copies -= 1
             book.save()
-            
-            # Set loan date
-            loan.loan_date = timezone.now()
-            loan.save()
             
             return Response(
                 LoanSerializer(loan).data,
