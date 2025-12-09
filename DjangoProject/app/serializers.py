@@ -205,13 +205,14 @@ class BookSerializer(serializers.ModelSerializer):
     branch_name = serializers.CharField(source='branch.branch_name', read_only=True)
     authors = serializers.SerializerMethodField()
     categories = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
     
     class Meta:
         model = Books
         fields = [
-            'book_id', 'title', 'isbn', 'pages', 'publication_year',
+            'book_id', 'title', 'isbn', 'pages', 'publication_year', 'description',
             'publisher', 'publisher_name', 'branch', 'branch_name',
-            'available_copies', 'authors', 'categories'
+            'available_copies', 'authors', 'categories', 'status', 'is_deleted'
         ]
         read_only_fields = ['book_id']
     
@@ -226,15 +227,36 @@ class BookSerializer(serializers.ModelSerializer):
         book_catalogs = Bookcatalogs.objects.filter(book=obj)
         catalogs = [bc.catalog for bc in book_catalogs]
         return CatalogSerializer(catalogs, many=True).data
+    
+    def get_status(self, obj):
+        """Get book status: available or out on loan"""
+        if obj.available_copies > 0:
+            return 'available'
+        else:
+            return 'out on loan'
 
 
 class BookCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating books"""
+    """Serializer for creating/updating books"""
+    authors = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        allow_empty=True,
+        write_only=True
+    )
+    categories = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        allow_empty=True,
+        write_only=True
+    )
+    
     class Meta:
         model = Books
         fields = [
-            'title', 'isbn', 'pages', 'publication_year',
-            'publisher', 'branch', 'available_copies'
+            'title', 'isbn', 'pages', 'publication_year', 'description',
+            'publisher', 'branch', 'available_copies',
+            'authors', 'categories'
         ]
 
 

@@ -110,11 +110,13 @@ class Books(models.Model):
     isbn = models.CharField(unique=True, max_length=20)
     pages = models.IntegerField(blank=True, null=True)
     publication_year = models.CharField(max_length=4, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
 
     publisher = models.ForeignKey(Publishers, on_delete=models.CASCADE, blank=True, null=True)
     branch = models.ForeignKey(Librarybranches, on_delete=models.CASCADE, blank=True, null=True)
 
     available_copies = models.IntegerField()
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         db_table = "books"

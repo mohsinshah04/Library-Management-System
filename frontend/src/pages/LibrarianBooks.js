@@ -7,6 +7,10 @@ import './LibrarianBooks.css';
 
 function LibrarianBooks() {
   const [books, setBooks] = useState([]);
+  const [authors, setAuthors] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [publishers, setPublishers] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -16,6 +20,10 @@ function LibrarianBooks() {
 
   useEffect(() => {
     fetchBooks();
+    fetchAuthors();
+    fetchCategories();
+    fetchPublishers();
+    fetchBranches();
   }, []);
 
   const fetchBooks = async () => {
@@ -33,6 +41,42 @@ function LibrarianBooks() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAuthors = async () => {
+    try {
+      const res = await api.get('/authors/');
+      setAuthors(res.data);
+    } catch (err) {
+      console.error('Error fetching authors:', err);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories/');
+      setCategories(res.data);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
+  const fetchPublishers = async () => {
+    try {
+      const res = await api.get('/publishers/');
+      setPublishers(res.data);
+    } catch (err) {
+      console.error('Error fetching publishers:', err);
+    }
+  };
+
+  const fetchBranches = async () => {
+    try {
+      const res = await api.get('/branches/');
+      setBranches(res.data);
+    } catch (err) {
+      console.error('Error fetching branches:', err);
     }
   };
 
@@ -189,6 +233,10 @@ function LibrarianBooks() {
                   onSubmit={handleFormSubmit}
                   onCancel={handleCancel}
                   loading={saving}
+                  authors={authors}
+                  categories={categories}
+                  publishers={publishers}
+                  branches={branches}
                 />
               </div>
             )}
@@ -210,7 +258,7 @@ function LibrarianBooks() {
               ) : (
                 books.map((book) => (
                   <div key={book.book_id} className="book-card-wrapper">
-                    <BookCard book={book} />
+                    <BookCard book={book} showStatus={true} />
                     <div className="card-actions">
                       <button
                         className="secondary-btn"

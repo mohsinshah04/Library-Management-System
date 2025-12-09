@@ -2,16 +2,24 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './BookCard.css';
 
-function BookCard({ book }) {
+function BookCard({ book, showStatus = false }) {
   const isAvailable = book.available_copies > 0;
+  const status = book.status || (isAvailable ? 'available' : 'out on loan');
   
   return (
     <div className="book-card">
       <div className="book-card-header">
         <h3 className="book-title">{book.title}</h3>
-        <span className={`availability-badge ${isAvailable ? 'available' : 'unavailable'}`}>
-          {isAvailable ? `${book.available_copies} Available` : 'Unavailable'}
-        </span>
+        <div className="badge-group">
+          <span className={`availability-badge ${isAvailable ? 'available' : 'unavailable'}`}>
+            {isAvailable ? `${book.available_copies} Available` : 'Unavailable'}
+          </span>
+          {showStatus && (
+            <span className={`status-badge ${status === 'available' ? 'status-available' : 'status-loan'}`}>
+              {status === 'available' ? 'Available' : 'Out on Loan'}
+            </span>
+          )}
+        </div>
       </div>
       
       <div className="book-card-body">

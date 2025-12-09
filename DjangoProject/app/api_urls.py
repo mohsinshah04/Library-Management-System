@@ -31,6 +31,15 @@ urlpatterns = [
     
     # Branches API
     path('branches/', api_views.branch_list, name='branch_list'),
+    
+    # Authors API
+    path('authors/', api_views.author_list, name='author_list'),
+    
+    # Categories API
+    path('categories/', api_views.category_list, name='category_list'),
+    
+    # Publishers API
+    path('publishers/', api_views.publisher_list, name='publisher_list'),
 ]
 
 

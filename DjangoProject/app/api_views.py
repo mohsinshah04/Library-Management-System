@@ -7,14 +7,14 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 import secrets
 
-from .models import Books, Loans, Reservations, Notifications, Fines, Users, Librarybranches
+from .models import Books, Loans, Reservations, Notifications, Fines, Users, Librarybranches, Authors, Catalogs, Bookauthors, Bookcatalogs
 from .serializers import (
     BookSerializer, BookCreateSerializer,
     LoanSerializer, LoanCreateSerializer,
     ReservationSerializer, ReservationCreateSerializer,
     NotificationSerializer, FineSerializer,
     UserBasicSerializer, UserSerializer, UserCreateSerializer, UserUpdateSerializer,
-    LibraryBranchSerializer
+    LibraryBranchSerializer, AuthorSerializer, CatalogSerializer
 )
 
 
@@ -72,7 +72,7 @@ def book_list_create(request):
         branch_id = request.query_params.get('branch', None)
         available_only = request.query_params.get('available_only', None)
         
-        books = Books.objects.all()
+        books = Books.objects.filter(is_deleted=False)
         
         # Apply filters
         if search:
@@ -99,7 +99,37 @@ def book_list_create(request):
         
         serializer = BookCreateSerializer(data=request.data)
         if serializer.is_valid():
+            # Extract authors and categories before saving
+            authors_ids = request.data.get('authors', [])
+            categories_ids = request.data.get('categories', [])
+            
+            # Save book
             book = serializer.save()
+            
+            # Handle authors (many-to-many)
+            if authors_ids:
+                # Clear existing authors
+                Bookauthors.objects.filter(book=book).delete()
+                # Add new authors
+                for author_id in authors_ids:
+                    try:
+                        author = Authors.objects.get(pk=author_id)
+                        Bookauthors.objects.get_or_create(book=book, author=author)
+                    except Authors.DoesNotExist:
+                        pass
+            
+            # Handle categories (many-to-many)
+            if categories_ids:
+                # Clear existing categories
+                Bookcatalogs.objects.filter(book=book).delete()
+                # Add new categories
+                for category_id in categories_ids:
+                    try:
+                        catalog = Catalogs.objects.get(pk=category_id)
+                        Bookcatalogs.objects.get_or_create(book=book, catalog=catalog)
+                    except Catalogs.DoesNotExist:
+                        pass
+            
             return Response(
                 BookSerializer(book).data,
                 status=status.HTTP_201_CREATED
@@ -130,7 +160,39 @@ def book_detail(request, book_id):
         
         serializer = BookCreateSerializer(book, data=request.data, partial=True)
         if serializer.is_valid():
+            # Extract authors and categories before saving
+            authors_ids = request.data.get('authors', None)
+            categories_ids = request.data.get('categories', None)
+            
+            # Save book
             serializer.save()
+            
+            # Handle authors (many-to-many) - only if provided
+            if authors_ids is not None:
+                # Clear existing authors
+                Bookauthors.objects.filter(book=book).delete()
+                # Add new authors
+                for author_id in authors_ids:
+                    try:
+                        author = Authors.objects.get(pk=author_id)
+                        Bookauthors.objects.get_or_create(book=book, author=author)
+                    except Authors.DoesNotExist:
+                        pass
+            
+            # Handle categories (many-to-many) - only if provided
+            if categories_ids is not None:
+                # Clear existing categories
+                Bookcatalogs.objects.filter(book=book).delete()
+                # Add new categories
+                for category_id in categories_ids:
+                    try:
+                        catalog = Catalogs.objects.get(pk=category_id)
+                        Bookcatalogs.objects.get_or_create(book=book, catalog=catalog)
+                    except Catalogs.DoesNotExist:
+                        pass
+            
+            # Refresh book to get updated relationships
+            book.refresh_from_db()
             return Response(BookSerializer(book).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -141,10 +203,13 @@ def book_detail(request, book_id):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        book.delete()
+        # Soft delete (recommended)
+        book.is_deleted = True
+        book.save()
+        
         return Response(
-            {'message': 'Book deleted successfully.'},
-            status=status.HTTP_204_NO_CONTENT
+            {'message': 'Book deleted successfully (soft delete).'},
+            status=status.HTTP_200_OK
         )
 
 
@@ -725,6 +790,41 @@ def branch_list(request):
     """
     branches = Librarybranches.objects.all().order_by('branch_name')
     serializer = LibraryBranchSerializer(branches, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def author_list(request):
+    """
+    Get list of authors (for book form)
+    """
+    authors = Authors.objects.all().order_by('last_name', 'first_name')
+    serializer = AuthorSerializer(authors, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def category_list(request):
+    """
+    Get list of categories (for book form)
+    """
+    categories = Catalogs.objects.all().order_by('category_name')
+    serializer = CatalogSerializer(categories, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def publisher_list(request):
+    """
+    Get list of publishers (for book form)
+    """
+    from .models import Publishers
+    from .serializers import PublisherSerializer
+    publishers = Publishers.objects.all().order_by('name')
+    serializer = PublisherSerializer(publishers, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 

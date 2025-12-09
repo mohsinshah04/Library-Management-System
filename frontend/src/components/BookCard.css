@@ -21,6 +21,13 @@
   gap: 10px;
 }
 
+.badge-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
 .book-title {
   margin: 0;
   font-size: 1.25rem;
@@ -46,6 +53,25 @@
 .availability-badge.unavailable {
   background-color: #f8d7da;
   color: #721c24;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+.status-badge.status-available {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.status-loan {
+  background-color: #fff3cd;
+  color: #856404;
 }
 
 .book-card-body {
