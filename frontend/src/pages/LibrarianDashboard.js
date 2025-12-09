@@ -111,6 +111,12 @@ function LibrarianDashboard() {
             <span className="action-link">View Notifications →</span>
           </div>
 
+          <div className="info-box clickable" onClick={() => navigate('/librarian/users')}>
+            <h3>👥 Manage Users</h3>
+            <p>Create, update, and manage user accounts</p>
+            <span className="action-link">Manage Users →</span>
+          </div>
+
           <div className="info-box">
             <h3>💰 Manage Fines</h3>
             <p>View and process overdue fines</p>

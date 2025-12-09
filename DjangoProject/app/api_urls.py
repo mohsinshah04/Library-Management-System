@@ -27,6 +27,10 @@ urlpatterns = [
     
     # Users API
     path('users/', api_views.user_list, name='user_list'),
+    path('users/<int:user_id>/', api_views.user_detail, name='user_detail'),
+    
+    # Branches API
+    path('branches/', api_views.branch_list, name='branch_list'),
 ]
 
 

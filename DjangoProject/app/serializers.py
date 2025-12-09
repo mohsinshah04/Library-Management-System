@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 from .models import (
     Books, Loans, Reservations, Notifications, Fines,
     Authors, Publishers, Catalogs, Librarybranches,
@@ -42,7 +43,156 @@ class UserBasicSerializer(serializers.ModelSerializer):
     """Basic user serializer (for nested use)"""
     class Meta:
         model = Users
-        fields = ['user_id', 'username', 'email', 'first_name', 'last_name', 'role']
+        fields = ['user_id', 'username', 'email', 'first_name', 'last_name', 'role', 'date_created']
+        read_only_fields = ['user_id', 'date_created']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Full user serializer with student/librarian profile info"""
+    major = serializers.CharField(source='student_profile.major', read_only=True, allow_null=True)
+    year = serializers.IntegerField(source='student_profile.year', read_only=True, allow_null=True)
+    employee_id = serializers.CharField(source='librarian_profile.employee_id', read_only=True, allow_null=True)
+    branch_name = serializers.CharField(source='librarian_profile.branch.name', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = Users
+        fields = [
+            'user_id', 'username', 'email', 'first_name', 'last_name', 
+            'role', 'date_created', 'major', 'year', 'employee_id', 'branch_name'
+        ]
+        read_only_fields = ['user_id', 'date_created']
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating users"""
+    password = serializers.CharField(write_only=True, required=True)
+    major = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    year = serializers.IntegerField(required=False, allow_null=True)
+    employee_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    branch = serializers.IntegerField(required=False, allow_null=True)
+    
+    class Meta:
+        model = Users
+        fields = [
+            'username', 'password', 'email', 'first_name', 'last_name', 
+            'role', 'major', 'year', 'employee_id', 'branch'
+        ]
+    
+    def validate_username(self, value):
+        if Users.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Username already exists.")
+        return value
+    
+    def validate_email(self, value):
+        if Users.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already exists.")
+        return value
+    
+    def create(self, validated_data):
+        from django.contrib.auth.hashers import make_password
+        from .models import Students, Librarians
+        
+        # Extract profile data
+        major = validated_data.pop('major', None)
+        year = validated_data.pop('year', None)
+        employee_id = validated_data.pop('employee_id', None)
+        branch_id = validated_data.pop('branch', None)
+        
+        # Hash password
+        password = validated_data.pop('password')
+        validated_data['password'] = make_password(password)
+        validated_data['date_created'] = timezone.now()
+        
+        # Create user
+        user = Users.objects.create(**validated_data)
+        
+        # Create student or librarian profile
+        if user.role == 'student':
+            Students.objects.create(
+                student_id=user,
+                major=major,
+                year=year
+            )
+        elif user.role == 'librarian':
+            branch = None
+            if branch_id:
+                from .models import Librarybranches
+                branch = Librarybranches.objects.get(pk=branch_id)
+            Librarians.objects.create(
+                librarian_id=user,
+                employee_id=employee_id or f"EMP{user.user_id:04d}",
+                branch=branch
+            )
+        
+        return user
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating users"""
+    password = serializers.CharField(write_only=True, required=False)
+    major = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    year = serializers.IntegerField(required=False, allow_null=True)
+    employee_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    branch = serializers.IntegerField(required=False, allow_null=True)
+    
+    class Meta:
+        model = Users
+        fields = [
+            'username', 'password', 'email', 'first_name', 'last_name', 
+            'role', 'major', 'year', 'employee_id', 'branch'
+        ]
+    
+    def validate_username(self, value):
+        # Check if username is being changed and if new username exists
+        if self.instance and self.instance.username != value:
+            if Users.objects.filter(username=value).exists():
+                raise serializers.ValidationError("Username already exists.")
+        return value
+    
+    def validate_email(self, value):
+        # Check if email is being changed and if new email exists
+        if self.instance and self.instance.email != value:
+            if Users.objects.filter(email=value).exists():
+                raise serializers.ValidationError("Email already exists.")
+        return value
+    
+    def update(self, instance, validated_data):
+        from django.contrib.auth.hashers import make_password
+        from .models import Students, Librarians, Librarybranches
+        
+        # Handle password update
+        password = validated_data.pop('password', None)
+        if password:
+            validated_data['password'] = make_password(password)
+        
+        # Extract profile data
+        major = validated_data.pop('major', None)
+        year = validated_data.pop('year', None)
+        employee_id = validated_data.pop('employee_id', None)
+        branch_id = validated_data.pop('branch', None)
+        
+        # Update user fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Update student or librarian profile
+        if instance.role == 'student':
+            student_profile, created = Students.objects.get_or_create(student_id=instance)
+            if major is not None:
+                student_profile.major = major
+            if year is not None:
+                student_profile.year = year
+            student_profile.save()
+        elif instance.role == 'librarian':
+            librarian_profile, created = Librarians.objects.get_or_create(librarian_id=instance)
+            if employee_id is not None:
+                librarian_profile.employee_id = employee_id
+            if branch_id is not None:
+                librarian_profile.branch = Librarybranches.objects.get(pk=branch_id) if branch_id else None
+            librarian_profile.save()
+        
+        return instance
 
 
 # -----------------------

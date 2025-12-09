@@ -7,13 +7,14 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 import secrets
 
-from .models import Books, Loans, Reservations, Notifications, Fines, Users
+from .models import Books, Loans, Reservations, Notifications, Fines, Users, Librarybranches
 from .serializers import (
     BookSerializer, BookCreateSerializer,
     LoanSerializer, LoanCreateSerializer,
     ReservationSerializer, ReservationCreateSerializer,
     NotificationSerializer, FineSerializer,
-    UserBasicSerializer
+    UserBasicSerializer, UserSerializer, UserCreateSerializer, UserUpdateSerializer,
+    LibraryBranchSerializer
 )
 
 
@@ -611,34 +612,119 @@ def fine_pay(request, fine_id):
 # Users API Views
 # -----------------------
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def user_list(request):
     """
-    Get list of users (librarians see all, students see only themselves)
-    For loan forms, librarians need to see all students
+    GET: List users (librarians see all, students see only themselves)
+    POST: Create new user (librarian only)
     """
-    if is_librarian(request.user):
-        # Librarians can see all users (for issuing loans)
-        users = Users.objects.all().order_by('first_name', 'last_name')
-        
-        # Filter by role if provided (e.g., to get only students)
-        role = request.query_params.get('role', None)
-        if role:
-            users = users.filter(role=role)
-        
-        serializer = UserBasicSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    else:
-        # Students can only see their own info
-        app_user = get_app_user(request.user)
-        if app_user:
-            serializer = UserBasicSerializer(app_user)
-            return Response([serializer.data], status=status.HTTP_200_OK)
+    if request.method == 'GET':
+        if is_librarian(request.user):
+            # Librarians can see all users
+            users = Users.objects.all().order_by('first_name', 'last_name')
+            
+            # Filter by role if provided
+            role = request.query_params.get('role', None)
+            if role:
+                users = users.filter(role=role)
+            
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
+            # Students can only see their own info
+            app_user = get_app_user(request.user)
+            if app_user:
+                serializer = UserSerializer(app_user)
+                return Response([serializer.data], status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {'error': 'User not found in library system.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+    
+    elif request.method == 'POST':
+        # Only librarians can create users
+        if not is_librarian(request.user):
             return Response(
-                {'error': 'User not found in library system.'},
-                status=status.HTTP_404_NOT_FOUND
+                {'error': 'Only librarians can create user accounts.'},
+                status=status.HTTP_403_FORBIDDEN
             )
+        
+        serializer = UserCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(
+                UserSerializer(user).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def user_detail(request, user_id):
+    """
+    GET: Get user details
+    PUT: Update user (librarian only, or user can update themselves)
+    DELETE: Delete/deactivate user (librarian only)
+    """
+    user = get_object_or_404(Users, pk=user_id)
+    app_user = get_app_user(request.user)
+    
+    if request.method == 'GET':
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    elif request.method == 'PUT':
+        # Users can update themselves, librarians can update anyone
+        if not is_librarian(request.user):
+            if not app_user or app_user.user_id != user_id:
+                return Response(
+                    {'error': 'You can only update your own account.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            updated_user = serializer.save()
+            return Response(
+                UserSerializer(updated_user).data,
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'DELETE':
+        # Only librarians can delete users
+        if not is_librarian(request.user):
+            return Response(
+                {'error': 'Only librarians can delete user accounts.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Don't allow deleting yourself
+        if app_user and app_user.user_id == user_id:
+            return Response(
+                {'error': 'You cannot delete your own account.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Delete user (cascade will delete student/librarian profile)
+        user.delete()
+        return Response(
+            {'message': 'User account deleted successfully.'},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def branch_list(request):
+    """
+    Get list of library branches (for librarian assignment)
+    """
+    branches = Librarybranches.objects.all().order_by('branch_name')
+    serializer = LibraryBranchSerializer(branches, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 

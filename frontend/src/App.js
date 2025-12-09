@@ -12,6 +12,7 @@ import LibrarianLoans from './pages/LibrarianLoans';
 import StudentReservations from './pages/StudentReservations';
 import LibrarianReservations from './pages/LibrarianReservations';
 import Notifications from './pages/Notifications';
+import UserManagement from './pages/UserManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -117,6 +118,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* User Management - Librarian only */}
+          <Route 
+            path="/librarian/users" 
+            element={
+              <ProtectedRoute role="librarian">
+                <UserManagement />
               </ProtectedRoute>
             } 
           />
