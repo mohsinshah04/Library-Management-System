@@ -33,12 +33,17 @@ function BookDetails() {
       alert('Book reserved successfully!');
       navigate('/student/reservations');
     } catch (err) {
+      const status = err.response?.status;
       const errorData = err.response?.data;
       let errorMessage = 'Failed to reserve book.';
-      
+
       if (errorData) {
         if (typeof errorData === 'string') {
-          errorMessage = errorData;
+          // If backend returned HTML, avoid dumping it in an alert
+          const looksLikeHtml = errorData.trim().startsWith('<');
+          errorMessage = looksLikeHtml
+            ? `Failed to reserve book (status ${status || 'unknown'}).`
+            : errorData;
         } else if (errorData.error) {
           errorMessage = errorData.error;
         } else if (errorData.detail) {
@@ -50,9 +55,9 @@ function BookDetails() {
           errorMessage = fieldErrors || JSON.stringify(errorData);
         }
       }
-      
+
       alert(errorMessage);
-      console.error('Error reserving book:', err.response?.data);
+      console.error('Error reserving book:', err.response?.data || err);
     } finally {
       setReserving(false);
     }
