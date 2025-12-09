@@ -51,13 +51,9 @@ function LibrarianLoans() {
 
   const fetchUsers = async () => {
     try {
-      // Note: This endpoint might need to be created
-      // For now, we'll try to get users from loans or create a simple endpoint
-      // You may need to create GET /api/users/ endpoint
-      const response = await api.get('/users/').catch(() => null);
-      if (response) {
-        setUsers(response.data);
-      }
+      // Fetch only students for loan form
+      const response = await api.get('/users/', { params: { role: 'student' } });
+      setUsers(response.data);
     } catch (err) {
       console.error('Error fetching users:', err);
       // Users will be empty, librarian can still create loans manually

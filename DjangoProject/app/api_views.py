@@ -12,7 +12,8 @@ from .serializers import (
     BookSerializer, BookCreateSerializer,
     LoanSerializer, LoanCreateSerializer,
     ReservationSerializer, ReservationCreateSerializer,
-    NotificationSerializer, FineSerializer
+    NotificationSerializer, FineSerializer,
+    UserBasicSerializer
 )
 
 
@@ -489,5 +490,40 @@ def fine_pay(request, fine_id):
         },
         status=status.HTTP_200_OK
     )
+
+
+# -----------------------
+# Users API Views
+# -----------------------
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_list(request):
+    """
+    Get list of users (librarians see all, students see only themselves)
+    For loan forms, librarians need to see all students
+    """
+    if is_librarian(request.user):
+        # Librarians can see all users (for issuing loans)
+        users = Users.objects.all().order_by('first_name', 'last_name')
+        
+        # Filter by role if provided (e.g., to get only students)
+        role = request.query_params.get('role', None)
+        if role:
+            users = users.filter(role=role)
+        
+        serializer = UserBasicSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        # Students can only see their own info
+        app_user = get_app_user(request.user)
+        if app_user:
+            serializer = UserBasicSerializer(app_user)
+            return Response([serializer.data], status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {'error': 'User not found in library system.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 

@@ -23,6 +23,9 @@ urlpatterns = [
     # Fines API
     path('fines/', api_views.fine_list, name='fine_list'),
     path('fines/<int:fine_id>/pay/', api_views.fine_pay, name='fine_pay'),
+    
+    # Users API
+    path('users/', api_views.user_list, name='user_list'),
 ]
 
 
