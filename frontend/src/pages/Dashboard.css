@@ -237,6 +237,9 @@
 
 .stat-content {
   flex: 1;
+  color: white !important;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-value {
@@ -253,6 +256,8 @@
   text-align: left !important;
   position: relative !important;
   z-index: 10 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
 }
 
 .stat-label {

@@ -41,10 +41,19 @@ function LibrarianDashboard() {
     try {
       setStatsLoading(true);
       const response = await api.get('/dashboard/stats/');
+      console.log('Dashboard stats API response:', response.data);
       
       if (response.data) {
-        setStats(response.data);
+        console.log('Setting stats:', response.data);
+        // Ensure values are numbers
+        const statsData = {
+          total_books: Number(response.data.total_books) || 0,
+          total_students: Number(response.data.total_students) || 0
+        };
+        console.log('Processed stats:', statsData);
+        setStats(statsData);
       } else {
+        console.warn('No data in response');
         setStats({
           total_books: 0,
           total_students: 0
@@ -52,6 +61,7 @@ function LibrarianDashboard() {
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
+      console.error('Error response:', err.response);
       // Set default stats with 0 values if API fails
       setStats({
         total_books: 0,
@@ -124,17 +134,8 @@ function LibrarianDashboard() {
               <div className="stat-card">
                 <div className="stat-icon">📚</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{
-                    color: '#ffffff',
-                    fontSize: '2rem',
-                    fontWeight: '700',
-                    lineHeight: '1',
-                    marginBottom: '5px',
-                    display: 'block',
-                    visibility: 'visible',
-                    opacity: '1'
-                  }}>
-                    {stats.total_books !== null && stats.total_books !== undefined ? stats.total_books : 0}
+                  <div className="stat-value" style={{color: 'white', fontSize: '32px', fontWeight: 'bold'}}>
+                    {stats.total_books !== undefined && stats.total_books !== null ? String(stats.total_books) : '0'}
                   </div>
                   <div className="stat-label">Total Books</div>
                 </div>
@@ -142,17 +143,8 @@ function LibrarianDashboard() {
               <div className="stat-card">
                 <div className="stat-icon">👥</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{
-                    color: '#ffffff',
-                    fontSize: '2rem',
-                    fontWeight: '700',
-                    lineHeight: '1',
-                    marginBottom: '5px',
-                    display: 'block',
-                    visibility: 'visible',
-                    opacity: '1'
-                  }}>
-                    {stats.total_students !== null && stats.total_students !== undefined ? stats.total_students : 0}
+                  <div className="stat-value" style={{color: 'white', fontSize: '32px', fontWeight: 'bold'}}>
+                    {stats.total_students !== undefined && stats.total_students !== null ? String(stats.total_students) : '0'}
                   </div>
                   <div className="stat-label">Total Students</div>
                 </div>
