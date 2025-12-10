@@ -41,16 +41,10 @@ function LibrarianDashboard() {
     try {
       setStatsLoading(true);
       const response = await api.get('/dashboard/stats/');
-      console.log('Dashboard stats response:', response);
-      console.log('Dashboard stats data:', response.data);
-      console.log('Stats type:', typeof response.data);
-      console.log('Stats keys:', Object.keys(response.data || {}));
       
       if (response.data) {
         setStats(response.data);
-        console.log('Stats set successfully:', response.data);
       } else {
-        console.warn('No data in response');
         setStats({
           total_books: 0,
           books_checked_out: 0,
@@ -62,9 +56,6 @@ function LibrarianDashboard() {
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
-      console.error('Error response:', err.response);
-      console.error('Error details:', err.response?.data);
-      console.error('Error status:', err.response?.status);
       // Set default stats with 0 values if API fails
       setStats({
         total_books: 0,
@@ -134,12 +125,6 @@ function LibrarianDashboard() {
         {/* Statistics Section */}
         <div className="stats-section">
           <h2 className="section-title">Library Statistics</h2>
-          {/* Debug info - remove after testing */}
-          {stats && (
-            <div style={{padding: '10px', background: '#f0f0f0', marginBottom: '10px', fontSize: '12px'}}>
-              Debug: stats = {JSON.stringify(stats)}
-            </div>
-          )}
           {statsLoading ? (
             <div className="loading">Loading statistics...</div>
           ) : stats ? (
@@ -147,42 +132,54 @@ function LibrarianDashboard() {
               <div className="stat-card">
                 <div className="stat-icon">📚</div>
                 <div className="stat-content">
-                  <div className="stat-value">{String(stats.total_books ?? 0)}</div>
+                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
+                    {String(stats.total_books ?? 0)}
+                  </div>
                   <div className="stat-label">Total Books</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">📖</div>
                 <div className="stat-content">
-                  <div className="stat-value">{String(stats.books_checked_out ?? 0)}</div>
+                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
+                    {String(stats.books_checked_out ?? 0)}
+                  </div>
                   <div className="stat-label">Books Checked Out</div>
                 </div>
               </div>
               <div className="stat-card overdue">
                 <div className="stat-icon">⚠️</div>
                 <div className="stat-content">
-                  <div className="stat-value">{String(stats.overdue_books ?? 0)}</div>
+                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
+                    {String(stats.overdue_books ?? 0)}
+                  </div>
                   <div className="stat-label">Overdue Books</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">💰</div>
                 <div className="stat-content">
-                  <div className="stat-value">{String(stats.active_fines ?? 0)}</div>
+                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
+                    {String(stats.active_fines ?? 0)}
+                  </div>
                   <div className="stat-label">Active Fines</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">📋</div>
                 <div className="stat-content">
-                  <div className="stat-value">{String(stats.reservations_pending ?? 0)}</div>
+                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
+                    {String(stats.reservations_pending ?? 0)}
+                  </div>
                   <div className="stat-label">Pending Reservations</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">👥</div>
                 <div className="stat-content">
-                  <div className="stat-value">{String(stats.total_students ?? 0)}</div>
+                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
+                    {String(stats.total_students ?? 0)}
+                  </div>
                   <div className="stat-label">Total Students</div>
                 </div>
               </div>

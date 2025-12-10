@@ -240,19 +240,22 @@
 }
 
 .stat-value {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
   line-height: 1;
   margin-bottom: 5px;
-  color: white;
+  color: white !important;
   min-height: 2rem;
-  display: block;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .stat-label {
   font-size: 0.9rem;
   opacity: 0.9;
   font-weight: 500;
+  color: white;
 }
 
 /* Quick Actions Section */
