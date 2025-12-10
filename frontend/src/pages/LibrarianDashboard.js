@@ -41,10 +41,20 @@ function LibrarianDashboard() {
     try {
       setStatsLoading(true);
       const response = await api.get('/dashboard/stats/');
+      console.log('Dashboard stats response:', response.data);
       setStats(response.data);
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
-      // Don't show error for stats, just log it
+      console.error('Error details:', err.response?.data);
+      // Set default stats with 0 values if API fails
+      setStats({
+        total_books: 0,
+        books_checked_out: 0,
+        overdue_books: 0,
+        active_fines: 0,
+        reservations_pending: 0,
+        total_students: 0
+      });
     } finally {
       setStatsLoading(false);
     }
@@ -103,55 +113,59 @@ function LibrarianDashboard() {
         </div>
 
         {/* Statistics Section */}
-        {stats && (
-          <div className="stats-section">
-            <h2 className="section-title">Library Statistics</h2>
+        <div className="stats-section">
+          <h2 className="section-title">Library Statistics</h2>
+          {statsLoading ? (
+            <div className="loading">Loading statistics...</div>
+          ) : stats ? (
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-icon">📚</div>
                 <div className="stat-content">
-                  <div className="stat-value">{stats.total_books}</div>
+                  <div className="stat-value">{stats.total_books !== undefined ? stats.total_books : 0}</div>
                   <div className="stat-label">Total Books</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">📖</div>
                 <div className="stat-content">
-                  <div className="stat-value">{stats.books_checked_out}</div>
+                  <div className="stat-value">{stats.books_checked_out !== undefined ? stats.books_checked_out : 0}</div>
                   <div className="stat-label">Books Checked Out</div>
                 </div>
               </div>
               <div className="stat-card overdue">
                 <div className="stat-icon">⚠️</div>
                 <div className="stat-content">
-                  <div className="stat-value">{stats.overdue_books}</div>
+                  <div className="stat-value">{stats.overdue_books !== undefined ? stats.overdue_books : 0}</div>
                   <div className="stat-label">Overdue Books</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">💰</div>
                 <div className="stat-content">
-                  <div className="stat-value">{stats.active_fines}</div>
+                  <div className="stat-value">{stats.active_fines !== undefined ? stats.active_fines : 0}</div>
                   <div className="stat-label">Active Fines</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">📋</div>
                 <div className="stat-content">
-                  <div className="stat-value">{stats.reservations_pending}</div>
+                  <div className="stat-value">{stats.reservations_pending !== undefined ? stats.reservations_pending : 0}</div>
                   <div className="stat-label">Pending Reservations</div>
                 </div>
               </div>
               <div className="stat-card">
                 <div className="stat-icon">👥</div>
                 <div className="stat-content">
-                  <div className="stat-value">{stats.total_students}</div>
+                  <div className="stat-value">{stats.total_students !== undefined ? stats.total_students : 0}</div>
                   <div className="stat-label">Total Students</div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="error-message">Failed to load statistics. Please refresh the page.</div>
+          )}
+        </div>
 
         {/* Quick Actions Section */}
         <div className="quick-actions-section">
