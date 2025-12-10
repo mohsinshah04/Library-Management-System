@@ -242,13 +242,17 @@
 .stat-value {
   font-size: 2rem !important;
   font-weight: 700 !important;
-  line-height: 1;
-  margin-bottom: 5px;
-  color: white !important;
-  min-height: 2rem;
+  line-height: 1 !important;
+  margin-bottom: 5px !important;
+  color: #ffffff !important;
+  min-height: 2rem !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  width: 100% !important;
+  text-align: left !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 .stat-label {

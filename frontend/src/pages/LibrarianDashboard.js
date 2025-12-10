@@ -129,11 +129,39 @@ function LibrarianDashboard() {
             <div className="loading">Loading statistics...</div>
           ) : stats ? (
             <div className="stats-grid">
+              {/* Test card to verify rendering */}
+              <div className="stat-card" style={{border: '2px solid red'}}>
+                <div className="stat-icon">🧪</div>
+                <div className="stat-content">
+                  <div className="stat-value" style={{
+                    color: '#ffffff',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    lineHeight: '1',
+                    marginBottom: '5px',
+                    display: 'block',
+                    visibility: 'visible',
+                    opacity: '1'
+                  }}>
+                    TEST: 123
+                  </div>
+                  <div className="stat-label">Test Card</div>
+                </div>
+              </div>
               <div className="stat-card">
                 <div className="stat-icon">📚</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
-                    {String(stats.total_books ?? 0)}
+                  <div className="stat-value" style={{
+                    color: '#ffffff',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    lineHeight: '1',
+                    marginBottom: '5px',
+                    display: 'block',
+                    visibility: 'visible',
+                    opacity: '1'
+                  }}>
+                    {stats.total_books !== null && stats.total_books !== undefined ? stats.total_books : 0}
                   </div>
                   <div className="stat-label">Total Books</div>
                 </div>
@@ -141,8 +169,17 @@ function LibrarianDashboard() {
               <div className="stat-card">
                 <div className="stat-icon">📖</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
-                    {String(stats.books_checked_out ?? 0)}
+                  <div className="stat-value" style={{
+                    color: '#ffffff',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    lineHeight: '1',
+                    marginBottom: '5px',
+                    display: 'block',
+                    visibility: 'visible',
+                    opacity: '1'
+                  }}>
+                    {stats.books_checked_out !== null && stats.books_checked_out !== undefined ? stats.books_checked_out : 0}
                   </div>
                   <div className="stat-label">Books Checked Out</div>
                 </div>
@@ -150,8 +187,17 @@ function LibrarianDashboard() {
               <div className="stat-card overdue">
                 <div className="stat-icon">⚠️</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
-                    {String(stats.overdue_books ?? 0)}
+                  <div className="stat-value" style={{
+                    color: '#ffffff',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    lineHeight: '1',
+                    marginBottom: '5px',
+                    display: 'block',
+                    visibility: 'visible',
+                    opacity: '1'
+                  }}>
+                    {stats.overdue_books !== null && stats.overdue_books !== undefined ? stats.overdue_books : 0}
                   </div>
                   <div className="stat-label">Overdue Books</div>
                 </div>
@@ -159,8 +205,17 @@ function LibrarianDashboard() {
               <div className="stat-card">
                 <div className="stat-icon">💰</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
-                    {String(stats.active_fines ?? 0)}
+                  <div className="stat-value" style={{
+                    color: '#ffffff',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    lineHeight: '1',
+                    marginBottom: '5px',
+                    display: 'block',
+                    visibility: 'visible',
+                    opacity: '1'
+                  }}>
+                    {stats.active_fines !== null && stats.active_fines !== undefined ? stats.active_fines : 0}
                   </div>
                   <div className="stat-label">Active Fines</div>
                 </div>
@@ -168,8 +223,17 @@ function LibrarianDashboard() {
               <div className="stat-card">
                 <div className="stat-icon">📋</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
-                    {String(stats.reservations_pending ?? 0)}
+                  <div className="stat-value" style={{
+                    color: '#ffffff',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    lineHeight: '1',
+                    marginBottom: '5px',
+                    display: 'block',
+                    visibility: 'visible',
+                    opacity: '1'
+                  }}>
+                    {stats.reservations_pending !== null && stats.reservations_pending !== undefined ? stats.reservations_pending : 0}
                   </div>
                   <div className="stat-label">Pending Reservations</div>
                 </div>
@@ -177,8 +241,17 @@ function LibrarianDashboard() {
               <div className="stat-card">
                 <div className="stat-icon">👥</div>
                 <div className="stat-content">
-                  <div className="stat-value" style={{color: 'white', fontSize: '2rem', fontWeight: '700'}}>
-                    {String(stats.total_students ?? 0)}
+                  <div className="stat-value" style={{
+                    color: '#ffffff',
+                    fontSize: '2rem',
+                    fontWeight: '700',
+                    lineHeight: '1',
+                    marginBottom: '5px',
+                    display: 'block',
+                    visibility: 'visible',
+                    opacity: '1'
+                  }}>
+                    {stats.total_students !== null && stats.total_students !== undefined ? stats.total_students : 0}
                   </div>
                   <div className="stat-label">Total Students</div>
                 </div>
