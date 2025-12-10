@@ -971,11 +971,7 @@ def dashboard_stats(request):
     """
     Get dashboard statistics (librarian only)
     Returns:
-    - total_books: Total number of books in library
-    - books_checked_out: Number of active loans
-    - overdue_books: Number of overdue loans
-    - active_fines: Number of unpaid fines
-    - reservations_pending: Number of pending reservations
+    - total_books: Total number of books in library (excluding soft-deleted)
     - total_students: Total number of student users
     """
     if not is_librarian(request.user):
@@ -984,38 +980,17 @@ def dashboard_stats(request):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    today = timezone.now().date()
-    
     # Total books (excluding soft-deleted)
     try:
         total_books = Books.objects.filter(is_deleted=False).count()
     except Exception:
         total_books = Books.objects.count()
     
-    # Books checked out (active loans)
-    books_checked_out = Loans.objects.filter(return_date__isnull=True).count()
-    
-    # Overdue books (loans with due_date < today and not returned)
-    overdue_books = Loans.objects.filter(
-        due_date__lt=today,
-        return_date__isnull=True
-    ).count()
-    
-    # Active fines (unpaid fines)
-    active_fines = Fines.objects.filter(paid=0).count()
-    
-    # Reservations pending
-    reservations_pending = Reservations.objects.filter(status='pending').count()
-    
     # Total students
     total_students = Users.objects.filter(role='student').count()
     
     stats = {
         'total_books': total_books,
-        'books_checked_out': books_checked_out,
-        'overdue_books': overdue_books,
-        'active_fines': active_fines,
-        'reservations_pending': reservations_pending,
         'total_students': total_students
     }
     
