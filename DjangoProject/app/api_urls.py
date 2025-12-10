@@ -42,6 +42,9 @@ urlpatterns = [
     
     # Publishers API
     path('publishers/', api_views.publisher_list, name='publisher_list'),
+    
+    # Dashboard API
+    path('dashboard/stats/', api_views.dashboard_stats, name='dashboard_stats'),
 ]
 
 

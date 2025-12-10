@@ -5,13 +5,16 @@ import './Dashboard.css';
 
 function LibrarianDashboard() {
   const [user, setUser] = useState(null);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch current user data when component loads
+    // Fetch current user data and stats when component loads
     fetchCurrentUser();
+    fetchDashboardStats();
   }, []);
 
   const fetchCurrentUser = async () => {
@@ -31,6 +34,19 @@ function LibrarianDashboard() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDashboardStats = async () => {
+    try {
+      setStatsLoading(true);
+      const response = await api.get('/dashboard/stats/');
+      setStats(response.data);
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err);
+      // Don't show error for stats, just log it
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -86,6 +102,92 @@ function LibrarianDashboard() {
           )}
         </div>
 
+        {/* Statistics Section */}
+        {stats && (
+          <div className="stats-section">
+            <h2 className="section-title">Library Statistics</h2>
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon">📚</div>
+                <div className="stat-content">
+                  <div className="stat-value">{stats.total_books}</div>
+                  <div className="stat-label">Total Books</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">📖</div>
+                <div className="stat-content">
+                  <div className="stat-value">{stats.books_checked_out}</div>
+                  <div className="stat-label">Books Checked Out</div>
+                </div>
+              </div>
+              <div className="stat-card overdue">
+                <div className="stat-icon">⚠️</div>
+                <div className="stat-content">
+                  <div className="stat-value">{stats.overdue_books}</div>
+                  <div className="stat-label">Overdue Books</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">💰</div>
+                <div className="stat-content">
+                  <div className="stat-value">{stats.active_fines}</div>
+                  <div className="stat-label">Active Fines</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">📋</div>
+                <div className="stat-content">
+                  <div className="stat-value">{stats.reservations_pending}</div>
+                  <div className="stat-label">Pending Reservations</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">👥</div>
+                <div className="stat-content">
+                  <div className="stat-value">{stats.total_students}</div>
+                  <div className="stat-label">Total Students</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick Actions Section */}
+        <div className="quick-actions-section">
+          <h2 className="section-title">Quick Actions</h2>
+          <div className="quick-actions-grid">
+            <button 
+              className="quick-action-btn"
+              onClick={() => navigate('/librarian/books')}
+            >
+              <span className="action-icon">➕</span>
+              <span className="action-text">Add Book</span>
+            </button>
+            <button 
+              className="quick-action-btn"
+              onClick={() => navigate('/librarian/users')}
+            >
+              <span className="action-icon">👤</span>
+              <span className="action-text">Add User</span>
+            </button>
+            <button 
+              className="quick-action-btn"
+              onClick={() => navigate('/librarian/loans')}
+            >
+              <span className="action-icon">📝</span>
+              <span className="action-text">Process Loan</span>
+            </button>
+            <button 
+              className="quick-action-btn"
+              onClick={() => navigate('/librarian/loans')}
+            >
+              <span className="action-icon">↩️</span>
+              <span className="action-text">Process Return</span>
+            </button>
+          </div>
+        </div>
+
         <div className="dashboard-content">
           <div className="info-box clickable" onClick={() => navigate('/librarian/books')}>
             <h3>📚 Manage Books</h3>
@@ -117,18 +219,11 @@ function LibrarianDashboard() {
             <span className="action-link">Manage Users →</span>
           </div>
 
-          <div className="info-box">
+          <div className="info-box clickable" onClick={() => navigate('/librarian/loans')}>
             <h3>💰 Manage Fines</h3>
             <p>View and process overdue fines</p>
-            <p className="coming-soon">(Coming soon)</p>
+            <span className="action-link">View Fines →</span>
           </div>
-        </div>
-
-        <div className="debug-info">
-          <details>
-            <summary>Debug Info (Click to expand)</summary>
-            <pre>{JSON.stringify(user, null, 2)}</pre>
-          </details>
         </div>
       </div>
     </div>
