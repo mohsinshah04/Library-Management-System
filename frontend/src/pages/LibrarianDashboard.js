@@ -221,7 +221,7 @@ function LibrarianDashboard() {
             <span className="action-link">Manage Users →</span>
           </div>
 
-          <div className="info-box clickable" onClick={() => navigate('/librarian/loans')}>
+          <div className="info-box clickable" onClick={() => navigate('/librarian/fines')}>
             <h3>💰 Manage Fines</h3>
             <p>View and process overdue fines</p>
             <span className="action-link">View Fines →</span>

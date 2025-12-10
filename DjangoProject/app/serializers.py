@@ -429,23 +429,45 @@ class NotificationCreateSerializer(serializers.ModelSerializer):
 class FineSerializer(serializers.ModelSerializer):
     """Serializer for Fines"""
     user_name = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
     book_title = serializers.CharField(source='loan.book.title', read_only=True)
     is_paid = serializers.SerializerMethodField()
     
     class Meta:
         model = Fines
         fields = [
-            'fine_id', 'user', 'user_name', 'loan', 'book_title',
+            'fine_id', 'user', 'user_name', 'user_email', 'loan', 'book_title',
             'amount', 'paid', 'is_paid', 'date_issued'
         ]
         read_only_fields = ['fine_id', 'date_issued']
     
     def get_user_name(self, obj):
         """Get user's full name"""
-        return f"{obj.user.first_name} {obj.user.last_name}"
+        if obj.user:
+            return f"{obj.user.first_name} {obj.user.last_name}"
+        return None
+    
+    def get_user_email(self, obj):
+        """Get user's email"""
+        if obj.user:
+            return obj.user.email
+        return None
     
     def get_is_paid(self, obj):
         """Check if fine is paid"""
         return obj.paid == 1
+
+
+class FineUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating fine amount"""
+    class Meta:
+        model = Fines
+        fields = ['amount']
+    
+    def validate_amount(self, value):
+        """Validate fine amount"""
+        if value < 0:
+            raise serializers.ValidationError("Fine amount cannot be negative.")
+        return value
 
 

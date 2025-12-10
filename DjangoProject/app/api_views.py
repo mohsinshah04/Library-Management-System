@@ -12,9 +12,10 @@ from .serializers import (
     BookSerializer, BookCreateSerializer,
     LoanSerializer, LoanCreateSerializer,
     ReservationSerializer, ReservationCreateSerializer,
-    NotificationSerializer, NotificationCreateSerializer, FineSerializer,
+    NotificationSerializer, NotificationCreateSerializer, 
+    FineSerializer, FineUpdateSerializer,
     UserBasicSerializer, UserSerializer, UserCreateSerializer, UserUpdateSerializer,
-    LibraryBranchSerializer, AuthorSerializer, CatalogSerializer
+    LibraryBranchSerializer, AuthorSerializer, CatalogSerializer, PublisherSerializer
 )
 
 
@@ -802,6 +803,54 @@ def fine_pay(request, fine_id):
             'message': 'Fine marked as paid.',
             'fine': FineSerializer(fine).data
         },
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def fine_update(request, fine_id):
+    """
+    Update fine amount (librarian only)
+    """
+    if not is_librarian(request.user):
+        return Response(
+            {'error': 'Only librarians can update fines.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    fine = get_object_or_404(Fines, pk=fine_id)
+    
+    serializer = FineUpdateSerializer(fine, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {
+                'message': 'Fine amount updated successfully.',
+                'fine': FineSerializer(fine).data
+            },
+            status=status.HTTP_200_OK
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def fine_delete(request, fine_id):
+    """
+    Delete a fine (librarian only - if mistake)
+    """
+    if not is_librarian(request.user):
+        return Response(
+            {'error': 'Only librarians can delete fines.'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    fine = get_object_or_404(Fines, pk=fine_id)
+    fine.delete()
+    
+    return Response(
+        {'message': 'Fine deleted successfully.'},
         status=status.HTTP_200_OK
     )
 
