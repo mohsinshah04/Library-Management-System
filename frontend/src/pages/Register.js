@@ -72,6 +72,9 @@ function Register() {
       }
     } catch (err) {
       // Handle errors
+      console.error('Registration error:', err);
+      console.error('Error response:', err.response?.data);
+      
       if (err.response && err.response.data) {
         // Backend validation errors
         const errorData = err.response.data;
@@ -81,15 +84,32 @@ function Register() {
           setError(errorData);
         } else if (errorData.message) {
           setError(errorData.message);
-        } else if (errorData.username) {
-          setError(`Username: ${Array.isArray(errorData.username) ? errorData.username[0] : errorData.username}`);
-        } else if (errorData.email) {
-          setError(`Email: ${Array.isArray(errorData.email) ? errorData.email[0] : errorData.email}`);
-        } else if (errorData.password) {
-          setError(`Password: ${Array.isArray(errorData.password) ? errorData.password[0] : errorData.password}`);
+        } else if (errorData.error) {
+          setError(errorData.error);
         } else {
-          setError('Registration failed. Please check your information.');
+          // Collect all validation errors
+          const errorMessages = [];
+          
+          // Check for field-specific errors
+          Object.keys(errorData).forEach(field => {
+            const fieldError = errorData[field];
+            if (Array.isArray(fieldError)) {
+              errorMessages.push(`${field}: ${fieldError.join(', ')}`);
+            } else if (typeof fieldError === 'string') {
+              errorMessages.push(`${field}: ${fieldError}`);
+            } else if (Array.isArray(fieldError) && fieldError.length > 0) {
+              errorMessages.push(`${field}: ${fieldError[0]}`);
+            }
+          });
+          
+          if (errorMessages.length > 0) {
+            setError(errorMessages.join('. '));
+          } else {
+            setError('Registration failed. Please check your information and try again.');
+          }
         }
+      } else if (err.message) {
+        setError(`Error: ${err.message}`);
       } else {
         setError('Network error. Please check if the backend server is running.');
       }
