@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 import secrets
+import logging
 
 from .models import Books, Loans, Reservations, Notifications, Fines, Users, Librarybranches, Authors, Catalogs, Bookauthors, Bookcatalogs
 from .serializers import (
@@ -42,18 +43,45 @@ def get_app_user(user):
         # Auto-create a corresponding legacy user record
         try:
             role = getattr(user, 'role', 'student')
+            # Ensure role is valid for app.Users model
+            valid_roles = [choice[0] for choice in Users.ROLE_CHOICES]
+            if role not in valid_roles:
+                role = 'student'  # Default to student if role is invalid
+            
             password_stub = secrets.token_hex(16)  # not used for auth here
+            email = user.email or f"{user.username}@example.com"
+            
+            # Check if email already exists with different username
+            try:
+                existing_user = Users.objects.get(email=email)
+                # If email exists but username is different, use existing user
+                if existing_user.username != user.username:
+                    # Update username to match
+                    existing_user.username = user.username
+                    existing_user.save()
+                    return existing_user
+            except Users.DoesNotExist:
+                pass  # Email doesn't exist, continue with creation
+            
             return Users.objects.create(
                 username=user.username,
                 password=password_stub,
-                email=user.email or f"{user.username}@example.com",
-                first_name=user.first_name or '',
-                last_name=user.last_name or '',
-                role=role if role in dict(Users.ROLE_CHOICES) else 'student',
+                email=email,
+                first_name=getattr(user, 'first_name', '') or '',
+                last_name=getattr(user, 'last_name', '') or '',
+                role=role,
                 date_created=timezone.now(),
             )
-        except Exception:
-            return None
+        except Exception as e:
+            # Log the error for debugging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to create app.Users for {user.username}: {str(e)}")
+            # Try to get by email as fallback
+            try:
+                email = user.email or f"{user.username}@example.com"
+                return Users.objects.get(email=email)
+            except Users.DoesNotExist:
+                return None
 
 
 # -----------------------
