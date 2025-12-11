@@ -10,15 +10,21 @@ const api = axios.create({
   },
 });
 
-// Request interceptor: Add token to all requests
+// Request interceptor: Add token to all requests (except auth endpoints)
 api.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('access_token');
+    // Skip adding token for authentication endpoints (register, login)
+    const authEndpoints = ['/auth/register/', '/auth/login/', '/auth/token/refresh/'];
+    const isAuthEndpoint = authEndpoints.some(endpoint => config.url?.includes(endpoint));
     
-    // Add token to Authorization header if it exists
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (!isAuthEndpoint) {
+      // Get token from localStorage
+      const token = localStorage.getItem('access_token');
+      
+      // Add token to Authorization header if it exists
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     
     return config;
@@ -37,8 +43,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Skip token refresh for authentication endpoints
+    const authEndpoints = ['/auth/register/', '/auth/login/', '/auth/token/refresh/'];
+    const isAuthEndpoint = authEndpoints.some(endpoint => originalRequest.url?.includes(endpoint));
+    
     // If error is 401 (Unauthorized) and we haven't tried to refresh yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // AND it's not an auth endpoint (register/login)
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       try {
